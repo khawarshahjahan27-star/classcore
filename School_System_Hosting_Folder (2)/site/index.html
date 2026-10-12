@@ -1,0 +1,2059 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>School System</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#0F766E">
+<style>
+:root{--brand:#0F766E;--ink:#14201C;--mut:#5B6B73;--line:#E3E8EC;--bg:#F3F5F7;--card:#fff;--bad:#B91C1C;--ok:#15803D}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+button,input,select,textarea{font:inherit;color:inherit}
+h1,h2,h3{margin:0}
+.hide{display:none!important}
+.mut{color:var(--mut)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.sp{flex:1}
+/* layout */
+#app{display:flex;min-height:100vh}
+#side{width:220px;background:#fff;border-right:1px solid var(--line);padding:14px 10px;position:sticky;top:0;height:100vh;overflow:auto;flex:none}
+#main{flex:1;min-width:0}
+#top{background:#fff;border-bottom:1px solid var(--line);padding:10px 18px;display:flex;gap:12px;align-items:center;position:sticky;top:0;z-index:5}
+#view{padding:18px;max-width:1100px}
+.brand{display:flex;gap:10px;align-items:center;padding:4px 6px 14px}
+.brand img,.logo{width:40px;height:40px;border-radius:10px;object-fit:cover;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;flex:none}
+.brand b{display:block;line-height:1.2}
+.brand small{color:var(--mut)}
+.nav a{display:block;padding:9px 12px;border-radius:10px;color:var(--ink);text-decoration:none;font-weight:600;margin-bottom:2px}
+.nav a:hover{background:var(--bg)}
+.nav a.on{background:var(--brand);color:#fff}
+.nav .soon{opacity:.45;cursor:default}
+#menu{display:none}
+/* ui */
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+.btn{padding:9px 14px;border-radius:10px;border:1px solid #C9D2D9;background:#fff;font-weight:600;cursor:pointer}
+.btn:hover{background:var(--bg)}
+.btn.p{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn.p:hover{filter:brightness(.92)}
+.btn.d{color:var(--bad);border-color:#F1B5B5}
+.btn.s{padding:5px 10px;font-size:13px}
+input,select,textarea{width:100%;padding:9px 11px;border:1px solid #C9D2D9;border-radius:10px;background:#fff}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--brand);outline-offset:0;border-color:var(--brand)}
+label.f{display:block;font-size:13px;font-weight:600;color:var(--mut);margin-bottom:10px}
+label.f>*:not(span){margin-top:4px;font-weight:400;color:var(--ink)}
+label.chk{display:flex;gap:8px;align-items:center;margin:6px 0;font-weight:500}
+label.chk input{width:auto}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:0 14px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:14px}
+.stat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px}
+.stat b{display:block;font-size:26px;color:var(--brand)}
+table{width:100%;border-collapse:collapse;background:#fff}
+th,td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--mut);background:#FAFBFC}
+tr.click{cursor:pointer}
+tr.click:hover{background:#F7FAFA}
+.tw{overflow:auto;border:1px solid var(--line);border-radius:14px}
+.tag{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;font-weight:700;background:var(--bg)}
+.tag.ok{background:#DCFCE7;color:var(--ok)}
+.tag.bad{background:#FEE2E2;color:var(--bad)}
+.bar{height:10px;border-radius:6px;background:var(--brand);opacity:.85}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.tabs button{padding:8px 14px;border-radius:99px;border:1px solid #C9D2D9;background:#fff;font-weight:600;cursor:pointer}
+.tabs button.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.note{background:#F0FDFA;border:1px solid #B7E4DE;border-radius:12px;padding:10px 12px;font-size:14px}
+.warn{background:#FFFBEB;border-color:#F3DFA2}
+/* modal + toast */
+#modal{position:fixed;inset:0;background:rgba(15,25,30,.5);display:flex;align-items:flex-start;justify-content:center;padding:24px 12px;overflow:auto;z-index:50}
+.mbox{background:#fff;border-radius:16px;width:100%;max-width:560px;padding:18px}
+.mbox.w{max-width:780px}
+.mhead{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.mhead h2{font-size:18px;flex:1}
+#toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#14201C;color:#fff;padding:10px 16px;border-radius:12px;z-index:99;max-width:90vw}
+/* welcome */
+.welcome{max-width:560px;margin:6vh auto;padding:0 14px}
+.opt{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.opt label{border:2px solid var(--line);border-radius:12px;padding:12px;cursor:pointer;display:block;font-weight:700}
+.opt label small{display:block;font-weight:400;color:var(--mut)}
+.opt input{width:auto;margin-right:6px}
+.opt label:has(input:checked){border-color:var(--brand);background:#F0FDFA}
+/* print */
+#printarea{display:none}
+@media print{
+  body>*:not(#printarea){display:none!important}
+  #printarea{display:block}
+  body{background:#fff}
+}
+.cert{font-family:Georgia,serif;padding:30px;border:3px double #333;max-width:760px;margin:0 auto}
+.cert h1{text-align:center;font-size:26px}
+.cert .c{text-align:center}
+.cert p{font-size:16px;line-height:2}
+.cert .sig{display:flex;justify-content:space-between;margin-top:70px}
+.cert .sig span{border-top:1px solid #000;padding-top:4px;min-width:160px;text-align:center;font-size:13px}
+@media(max-width:800px){
+  #side{position:fixed;left:-240px;z-index:20;transition:left .2s;box-shadow:0 0 30px rgba(0,0,0,.2)}
+  #side.open{left:0}
+  #menu{display:inline-block}
+  .g2,.g3,.opt{grid-template-columns:1fr}
+  #view{padding:12px}
+}
+
+/* slips */
+.slipsheet{page-break-after:always;break-after:page}
+.sliprow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5mm;margin:0 3px 6mm 0}
+.slip{border:1px solid #222;padding:7px 9px;font-size:11px;line-height:1.35;color:#000;background:#fff}
+.slipsheet.one .slip{font-size:13px;padding:10px 12px}
+.slip h4{margin:0;font-size:1.15em;text-align:center}
+.slip .cp{text-align:center;font-weight:700;border:1px solid #000;margin:4px 0;padding:1px;font-size:.9em}
+.slip table{width:100%;border-collapse:collapse;margin:4px 0}
+.slip td,.slip th{padding:2px 3px;border:1px solid #999;font-size:inherit;text-transform:none;letter-spacing:0;background:#fff;color:#000}
+.slip .bank{border-top:1px dashed #555;margin-top:4px;padding-top:3px;font-size:.92em}
+.slip .sg{margin-top:16px;display:flex;justify-content:space-between;font-size:.9em}
+.slip .sg span{border-top:1px solid #000;padding-top:1px}
+.slip .logo,.slip img{width:34px;height:34px;display:block;margin:0 auto 2px;border-radius:6px}
+
+/* attendance */
+.mk{display:flex;gap:6px}
+.mk button{width:42px;height:38px;border-radius:10px;border:1px solid #C9D2D9;background:#fff;font-weight:700;cursor:pointer}
+.mk button.P.on{background:#16A34A;border-color:#16A34A;color:#fff}
+.mk button.A.on{background:#DC2626;border-color:#DC2626;color:#fff}
+.mk button.L.on{background:#D97706;border-color:#D97706;color:#fff}
+.reg{border-collapse:collapse;font-size:12px}
+.reg td,.reg th{border:1px solid #D5DCE1;padding:2px 4px;text-align:center;min-width:22px}
+.reg td.nm{text-align:left;white-space:nowrap;min-width:140px}
+.reg .A{color:#DC2626;font-weight:700}.reg .L{color:#D97706;font-weight:700}.reg .H{background:#EEF1F3;color:#999}
+
+</style>
+</head>
+<body>
+<div id="welcome" class="welcome hide"></div>
+<div id="app" class="hide">
+  <aside id="side">
+    <div class="brand" id="brand"></div>
+    <nav class="nav" id="nav"></nav>
+  </aside>
+  <div id="main">
+    <div id="top"><button class="btn s" id="menu" type="button">Menu</button><div id="switch"></div><div class="sp"></div><button class="btn s hide" id="lockBtn" type="button" data-a="lockNow">Lock</button><button class="btn s" id="syncChip" type="button" data-a="syncChip">Saved on this device</button></div>
+    <div id="view"></div>
+  </div>
+</div>
+<div id="modal" class="hide"></div>
+<div id="toast" class="hide"></div>
+<div id="printarea"></div>
+<script>
+// ===== CORE: storage, helpers, router, modal. Every other chunk uses these. =====
+var APP = { mods: [], act: {}, forms: {}, VERSION: 1 };
+var DB = null;
+var KEY = 'sams_school_db_v1';
+
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+function $(id) { return document.getElementById(id); }
+function today() { var d = new Date(); return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
+function fmtDate(s) { if (!s) return ''; var p = s.split('-'); return p.length === 3 ? p[2] + '-' + p[1] + '-' + p[0] : s; }
+
+// ---- storage: IndexedDB (big, safe). Old localStorage data is moved over once. ----
+var idb = null, saveT = null, idbOK = true;
+function emptyDB() { return { v: 1, active: null, schools: {} }; }
+function openIdb(cb) {
+  try {
+    var r = indexedDB.open('sams_school', 1);
+    r.onupgradeneeded = function () { r.result.createObjectStore('kv'); };
+    r.onsuccess = function () { idb = r.result; cb(); };
+    r.onerror = function () { idbOK = false; cb(); };
+  } catch (e) { idbOK = false; cb(); }
+}
+function load(done) {
+  function legacy() { var d = null; try { d = JSON.parse(localStorage.getItem(KEY)); } catch (e) { } return d; }
+  function fin(d) { DB = d && d.schools ? d : emptyDB(); if (idbOK && !d) { /* nothing */ } done(); }
+  openIdb(function () {
+    if (!idbOK) return fin(legacy());
+    var q = idb.transaction('kv').objectStore('kv').get('db');
+    q.onsuccess = function () { var d = q.result; if (!d) { d = legacy(); if (d) { DB = d; flushSave(); } } fin(d); };
+    q.onerror = function () { idbOK = false; fin(legacy()); };
+  });
+  try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) { }
+}
+function flushSave() {
+  clearTimeout(saveT); saveT = null; if (!DB) return;
+  if (idbOK && idb) {
+    try { var tx = idb.transaction('kv', 'readwrite'); tx.objectStore('kv').put(DB, 'db'); tx.onerror = function () { toast('Could not save. Download a backup now.'); }; return; } catch (e) { }
+  }
+  try { localStorage.setItem(KEY, JSON.stringify(DB)); } catch (e) { toast('Could not save. Storage may be full. Download a backup now.'); }
+}
+function save() { if (saveT) clearTimeout(saveT); saveT = setTimeout(flushSave, 60); if (APP.onSave) APP.onSave(); }
+// small key-value helpers (used by online sync to keep login and versions OUTSIDE the school data)
+function kvGet(k, cb) {
+  if (idbOK && idb) { try { var q = idb.transaction('kv').objectStore('kv').get(k); q.onsuccess = function () { cb(q.result || null); }; q.onerror = function () { cb(null); }; return; } catch (e) { } }
+  var v = null; try { v = JSON.parse(localStorage.getItem('sams_kv_' + k)); } catch (e) { } cb(v);
+}
+function kvPut(k, v) {
+  if (idbOK && idb) { try { idb.transaction('kv', 'readwrite').objectStore('kv').put(v, k); return; } catch (e) { } }
+  try { localStorage.setItem('sams_kv_' + k, JSON.stringify(v)); } catch (e) { }
+}
+window.addEventListener('pagehide', function () { if (saveT) flushSave(); });
+document.addEventListener('visibilitychange', function () { if (document.hidden && saveT) flushSave(); });
+function S() { return DB.schools[DB.active]; }           // the active school
+function schoolList() { return Object.keys(DB.schools).map(function (k) { return DB.schools[k]; }); }
+
+// ---- default settings by school type ----
+function newSchool(p) {
+  var gov = p.type === 'government';
+  var cls = gov ? ['Katchi', 'Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5', 'Class 6', 'Class 7', 'Class 8', 'Class 9', 'Class 10']
+                : ['Play Group', 'Nursery', 'Prep', 'Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5', 'Class 6', 'Class 7', 'Class 8', 'Class 9', 'Class 10'];
+  return {
+    id: uid(),
+    profile: { name: p.name, type: p.type, city: p.city || '', address: '', phone: p.phone || '', email: '', motto: '', color: p.color || '#0F766E', logo: '', principal: '', year: String(new Date().getFullYear()) },
+    settings: {
+      admLabel: gov ? 'GR No' : 'Admission No',       // government schools call it GR / register number
+      admAuto: true, admPrefix: '', admNext: 1, admPad: 4,
+      feesOn: !gov,                                    // private: fees on. government: usually off
+      fields: { bForm: true, fatherCnic: false, religion: false, address: true, prevSchool: true, bloodGroup: false, whatsapp: true, notes: true, domicile: gov, disability: gov }
+    },
+    classes: cls.map(function (n) { return { id: uid(), name: n, sections: ['A'] }; }),
+    students: []
+  };
+}
+
+// ---- UI helpers ----
+var toastT;
+function toast(msg) {
+  var t = $('toast'); t.textContent = msg; t.classList.remove('hide');
+  clearTimeout(toastT); toastT = setTimeout(function () { t.classList.add('hide'); }, 2600);
+}
+function modal(title, html, wide) {
+  var m = $('modal');
+  m.innerHTML = '<div class="mbox' + (wide ? ' w' : '') + '"><div class="mhead"><h2>' + esc(title) + '</h2><button class="btn s" data-a="close">Close</button></div>' + html + '</div>';
+  m.classList.remove('hide');
+}
+function closeModal() { $('modal').classList.add('hide'); $('modal').innerHTML = ''; }
+function ask(msg) { return window.confirm(msg); }
+function printHtml(html, landscape) {
+  $('printarea').innerHTML = html;
+  var st = $('pgstyle'); if (st) st.remove();
+  st = document.createElement('style'); st.id = 'pgstyle'; st.textContent = '@page{size:A4 ' + (landscape ? 'landscape' : 'portrait') + ';margin:8mm}'; document.head.appendChild(st);
+  setTimeout(function () { window.print(); }, 80);
+}
+function money(n) { n = Math.round(Number(n) || 0); return (n < 0 ? '-' : '') + 'Rs ' + Math.abs(n).toLocaleString('en-US'); }
+var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+function monthLabel(m) { var p = m.split('-'); return MONTHS[parseInt(p[1], 10) - 1] + ' ' + p[0]; }
+function thisMonth() { return today().slice(0, 7); }
+function waLink(num, msg) {
+  var d = String(num || '').replace(/\D/g, ''); if (!d) return '';
+  if (d.indexOf('00') === 0) d = d.slice(2); else if (d.charAt(0) === '0') d = '92' + d.slice(1); else if (d.length === 10) d = '92' + d;
+  return 'https://wa.me/' + d + '?text=' + encodeURIComponent(msg);
+}
+function download(name, text, type) {
+  var b = new Blob([text], { type: type || 'text/plain' }), a = document.createElement('a');
+  a.href = URL.createObjectURL(b); a.download = name; document.body.appendChild(a); a.click();
+  setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+}
+function formData(form) {
+  var o = {}; Array.prototype.forEach.call(form.elements, function (el) {
+    if (!el.name) return;
+    if (el.type === 'checkbox') o[el.name] = el.checked;
+    else if (el.type === 'radio') { if (el.checked) o[el.name] = el.value; }
+    else o[el.name] = el.value.trim();
+  }); return o;
+}
+function opt(list, sel, valKey, labKey) {
+  return list.map(function (x) {
+    var v = valKey ? x[valKey] : x, l = labKey ? x[labKey] : x;
+    return '<option value="' + esc(v) + '"' + (String(v) === String(sel) ? ' selected' : '') + '>' + esc(l) + '</option>';
+  }).join('');
+}
+function classById(id) { return S().classes.filter(function (c) { return c.id === id; })[0]; }
+function className(id) { var c = classById(id); return c ? c.name : '—'; }
+
+// ---- module registry + router ----
+// A chunk registers itself:  APP.mods.push({id:'students', label:'Students', order:20, render:function(){return html}, after:function(){}})
+function mod(id) { return APP.mods.filter(function (m) { return m.id === id; })[0]; }
+function schoolChanged() { (APP.onSchool || []).forEach(function (f) { f(); }); }
+function route() {
+  var id = (location.hash || '#/home').replace('#/', '').split('?')[0];
+  var m = mod(id) || mod('home');
+  if (!DB.active) return showWelcome();
+  if (APP.gate) { var g = APP.gate(id); if (g === 'lock') return; if (g) { if (location.hash !== '#/' + g) location.hash = '#/' + g; else route(); return; } }
+  $('welcome').classList.add('hide'); $('welcome').innerHTML = ''; $('app').classList.remove('hide');
+  applyBrand(); drawNav(m.id);
+  $('view').innerHTML = m.render();
+  if (m.after) m.after();
+  $('side').classList.remove('open');
+  window.scrollTo(0, 0);
+  if (APP.afterRoute) APP.afterRoute();
+}
+function rerender() { var y = window.scrollY; route(); window.scrollTo(0, y); }
+function go(id) { if (location.hash === '#/' + id) route(); else location.hash = '#/' + id; }
+
+function drawNav(cur) {
+  var items = APP.mods.filter(function (m) { return !m.hidden && (!m.when || m.when()) && (!APP.canSee || APP.canSee(m.id)); }).sort(function (a, b) { return a.order - b.order; });
+  var h = items.map(function (m) { return '<a href="#/' + m.id + '" class="' + (m.id === cur ? 'on' : '') + '">' + esc(m.label) + '</a>'; }).join('');
+  (APP.soon || []).filter(function (x) { return !APP.mods.some(function (m) { return m.label === x; }); }).forEach(function (x) { h += '<a class="soon" title="Coming in a later chunk">' + esc(x) + '</a>'; });
+  $('nav').innerHTML = h;
+}
+function applyBrand() {
+  var s = S(); document.documentElement.style.setProperty('--brand', s.profile.color || '#0F766E');
+  var init = (s.profile.name || '?').trim().charAt(0).toUpperCase();
+  var logo = s.profile.logo ? '<img src="' + s.profile.logo + '" alt="">' : '<div class="logo">' + esc(init) + '</div>';
+  $('brand').innerHTML = logo + '<div><b>' + esc(s.profile.name) + '</b><small>' + (s.profile.type === 'government' ? 'Government school' : 'Private school') + '</small></div>';
+  var sw = schoolList().length > 1;
+  $('switch').innerHTML = '';
+  if (sw) { $('switch').innerHTML = '<select id="schoolSwitch">' + schoolList().map(function (x) { return '<option value="' + x.id + '"' + (x.id === DB.active ? ' selected' : '') + '>' + esc(x.profile.name) + '</option>'; }).join('') + '</select>'; }
+  document.title = s.profile.name + ' – School System';
+}
+
+// ---- welcome screen: create the first school ----
+function showWelcome(adding) {
+  $('app').classList.add('hide');
+  var w = $('welcome'); w.classList.remove('hide');
+  w.innerHTML = '<div class="card"><h1>' + (adding ? 'Add another school' : 'Welcome') + '</h1>' +
+    '<p class="mut">Set up your school in one minute. You can change everything later in Settings.</p>' +
+    '<form data-f="newSchool">' +
+    '<label class="f"><span>School name</span><input name="name" required placeholder="e.g. Al-Noor Public School"></label>' +
+    '<div class="opt"><label><input type="radio" name="type" value="private" checked>Private<small>Monthly fees, salaries, fee slips</small></label>' +
+    '<label><input type="radio" name="type" value="government">Government<small>GR number, no fees by default</small></label></div>' +
+    '<div class="g2"><label class="f"><span>City</span><input name="city"></label><label class="f"><span>Phone</span><input name="phone"></label></div>' +
+    '<label class="f"><span>School colour</span><input type="color" name="color" value="#0F766E" style="height:42px;padding:3px"></label>' +
+    '<div class="row"><button class="btn p" type="submit">Create school</button>' + (adding ? '<button class="btn" type="button" data-a="cancelAdd">Cancel</button>' : '') + '</div></form></div>' +
+    (adding ? '' : '<div class="note">Data is saved on this device in your browser. Use Settings → Backup often.</div>');
+}
+APP.forms.newSchool = function (f) {
+  var d = formData(f); if (!d.name) return;
+  var s = newSchool(d); DB.schools[s.id] = s; DB.active = s.id; save(); location.hash = '#/home'; route(); toast('School created');
+};
+APP.act.cancelAdd = function () { route(); };
+APP.act.close = closeModal;
+
+// ---- global events ----
+document.addEventListener('click', function (e) {
+  var el = e.target.closest('[data-a]');
+  if (el && APP.act[el.getAttribute('data-a')]) { APP.act[el.getAttribute('data-a')](el, e); }
+  else if (e.target.id === 'modal') closeModal();
+});
+document.addEventListener('submit', function (e) {
+  var f = e.target.closest('form[data-f]');
+  if (f) { e.preventDefault(); if (APP.forms[f.getAttribute('data-f')]) APP.forms[f.getAttribute('data-f')](f, e); }
+});
+document.addEventListener('change', function (e) {
+  if (e.target.id === 'schoolSwitch') { DB.active = e.target.value; schoolChanged(); save(); location.hash = '#/home'; route(); }
+  var c = e.target.closest('[data-c]'); if (c && APP.chg && APP.chg[c.getAttribute('data-c')]) APP.chg[c.getAttribute('data-c')](c, e);
+});
+document.addEventListener('input', function (e) {
+  var c = e.target.closest('[data-i]'); if (c && APP.inp && APP.inp[c.getAttribute('data-i')]) APP.inp[c.getAttribute('data-i')](c, e);
+});
+window.addEventListener('hashchange', route);
+
+
+// ===== CHUNK 1b: Home (dashboard) + Settings (profile, branding, classes, fields, numbering, backup) =====
+APP.soon = [];
+APP.homeCards = []; // each chunk can add a small number card: function(){ return {label, value} }
+
+// ---------- HOME ----------
+APP.mods.push({
+  id: 'home', label: 'Home', order: 1,
+  render: function () {
+    var s = S(), act = s.students.filter(function (x) { return x.status === 'active'; }), wd = s.students.length - act.length;
+    var boys = act.filter(function (x) { return x.gender === 'Male'; }).length, girls = act.filter(function (x) { return x.gender === 'Female'; }).length;
+    var max = 1, rows = s.classes.map(function (c) {
+      var n = act.filter(function (x) { return x.classId === c.id; }).length; if (n > max) max = n; return { c: c, n: n };
+    });
+    var h = '<div class="row" style="margin-bottom:12px"><div><h1>' + esc(s.profile.name) + '</h1><div class="mut">' + esc(s.profile.motto || '') + '</div></div><div class="sp"></div><button class="btn p" data-a="goAdmit">+ Admit student</button></div>';
+    h += '<div class="stats"><div class="stat"><span class="mut">Active students</span><b>' + act.length + '</b></div>' +
+      '<div class="stat"><span class="mut">Boys / Girls</span><b>' + boys + ' / ' + girls + '</b></div>' +
+      '<div class="stat"><span class="mut">Classes</span><b>' + s.classes.length + '</b></div>' +
+      '<div class="stat"><span class="mut">Withdrawn</span><b>' + wd + '</b></div></div>';
+    var extra = APP.homeCards.map(function (f) { return f(); }).filter(Boolean);
+    if (extra.length) h += '<div class="stats">' + extra.map(function (e) { return '<div class="stat"><span class="mut">' + e.label + '</span><b>' + e.value + '</b></div>'; }).join('') + '</div>';
+    h += '<div class="card"><h3 style="margin-bottom:10px">Students per class</h3>';
+    if (!act.length) h += '<p class="mut">No students yet. Click "Admit student", or use Import in the Students page.</p>';
+    else h += rows.map(function (r) { return '<div class="row" style="margin:5px 0"><div style="width:110px">' + esc(r.c.name) + '</div><div style="flex:1"><div class="bar" style="width:' + Math.max(2, r.n / max * 100) + '%"></div></div><b style="width:40px;text-align:right">' + r.n + '</b></div>'; }).join('');
+    h += '</div>';
+    return h;
+  }
+});
+APP.act.goAdmit = function () { location.hash = '#/students'; setTimeout(function () { APP.act.admit(); }, 30); };
+
+// ---------- SETTINGS ----------
+var setTab = 'profile';
+var FIELD_LABELS = {
+  bForm: 'B-Form / CRC number', fatherCnic: "Father's CNIC", religion: 'Religion', address: 'Home address', prevSchool: 'Previous school',
+  bloodGroup: 'Blood group', whatsapp: 'Guardian WhatsApp number', notes: 'Notes', domicile: 'Domicile / district', disability: 'Special need / disability'
+};
+APP.mods.push({
+  id: 'settings', label: 'Settings', order: 90,
+  render: function () {
+    var tabs = [['profile', 'School & branding'], ['classes', 'Classes'], ['fields', 'Student form'], ['numbers', 'Numbering & modules'], ['schools', 'Schools'], ['access', 'Staff access'], ['sync', 'Online sync'], ['backup', 'Backup']];
+    var h = '<h1 style="margin-bottom:12px">Settings</h1><div class="tabs">' + tabs.map(function (t) { return '<button data-a="setTab" data-t="' + t[0] + '" class="' + (t[0] === setTab ? 'on' : '') + '">' + t[1] + '</button>'; }).join('') + '</div>';
+    return h + TABS[setTab]();
+  }
+});
+APP.act.setTab = function (el) { setTab = el.getAttribute('data-t'); rerender(); };
+
+var TABS = {
+  profile: function () {
+    var p = S().profile;
+    return '<div class="card"><form data-f="saveProfile">' +
+      '<div class="row" style="margin-bottom:12px">' + (p.logo ? '<img src="' + p.logo + '" style="width:64px;height:64px;border-radius:12px;object-fit:cover">' : '<div class="logo" style="width:64px;height:64px;font-size:26px">' + esc(p.name.charAt(0).toUpperCase()) + '</div>') +
+      '<div><label class="btn s" style="display:inline-block">Upload logo<input type="file" accept="image/*" data-c="logo" class="hide"></label> ' + (p.logo ? '<button type="button" class="btn s" data-a="rmLogo">Remove logo</button>' : '') + '<div class="mut" style="font-size:12px">Shown on the menu, fee slips, certificates and report cards.</div></div></div>' +
+      '<label class="f"><span>School name</span><input name="name" value="' + esc(p.name) + '" required></label>' +
+      '<div class="g2"><label class="f"><span>Type</span><select name="type"><option value="private"' + (p.type === 'private' ? ' selected' : '') + '>Private</option><option value="government"' + (p.type === 'government' ? ' selected' : '') + '>Government</option></select></label>' +
+      '<label class="f"><span>Motto / tagline</span><input name="motto" value="' + esc(p.motto) + '"></label></div>' +
+      '<div class="g2"><label class="f"><span>City</span><input name="city" value="' + esc(p.city) + '"></label><label class="f"><span>Phone</span><input name="phone" value="' + esc(p.phone) + '"></label></div>' +
+      '<div class="g2"><label class="f"><span>Email</span><input name="email" value="' + esc(p.email) + '"></label><label class="f"><span>Principal / Head name</span><input name="principal" value="' + esc(p.principal) + '"></label></div>' +
+      '<label class="f"><span>Full address (printed on documents)</span><input name="address" value="' + esc(p.address) + '"></label>' +
+      '<div class="g2"><label class="f"><span>Session / year</span><input name="year" value="' + esc(p.year) + '" placeholder="2026-27"></label>' +
+      '<label class="f"><span>School colour</span><input type="color" name="color" value="' + esc(p.color) + '" data-i="color" style="height:42px;padding:3px"></label></div>' +
+      '<button class="btn p" type="submit">Save</button></form></div>';
+  },
+  classes: function () {
+    var s = S();
+    var txt = s.classes.map(function (c) { return c.name + ' | ' + c.sections.join(','); }).join('\n');
+    return '<div class="card"><form data-f="saveClasses"><p class="mut">One class per line. Format: <b>Class name | sections</b>. Example: <code>Class 5 | A,B,C</code></p>' +
+      '<textarea name="txt" rows="16" style="font-family:monospace">' + esc(txt) + '</textarea>' +
+      '<p class="mut" style="font-size:13px">You cannot remove a class that still has active students. Renaming a class creates a new one, so move students first.</p>' +
+      '<button class="btn p" type="submit">Save classes</button></form></div>';
+  },
+  fields: function () {
+    var f = S().settings.fields;
+    return '<div class="card"><form data-f="saveFields"><p class="mut">Choose which extra fields appear on the student form. Name, father name, gender, date of birth, class, section and phone are always there.</p>' +
+      Object.keys(FIELD_LABELS).map(function (k) { return '<label class="chk"><input type="checkbox" name="' + k + '"' + (f[k] ? ' checked' : '') + '>' + FIELD_LABELS[k] + '</label>'; }).join('') +
+      '<button class="btn p" type="submit" style="margin-top:10px">Save</button></form></div>';
+  },
+  numbers: function () {
+    var st = S().settings;
+    return '<div class="card"><form data-f="saveNumbers">' +
+      '<div class="g2"><label class="f"><span>Name of the number (shown everywhere)</span><input name="admLabel" value="' + esc(st.admLabel) + '" placeholder="Admission No or GR No"></label>' +
+      '<label class="f"><span>Number style</span><select name="admAuto"><option value="1"' + (st.admAuto ? ' selected' : '') + '>Automatic (counts up)</option><option value="0"' + (!st.admAuto ? ' selected' : '') + '>I type it myself</option></select></label></div>' +
+      '<div class="g3"><label class="f"><span>Prefix (optional)</span><input name="admPrefix" value="' + esc(st.admPrefix) + '" placeholder="e.g. ANPS-"></label>' +
+      '<label class="f"><span>Next number</span><input type="number" min="1" name="admNext" value="' + st.admNext + '"></label>' +
+      '<label class="f"><span>Digits</span><input type="number" min="1" max="8" name="admPad" value="' + st.admPad + '"></label></div>' +
+      '<p class="mut">Next number will look like: <b>' + esc(fmtAdm(st, st.admNext)) + '</b></p>' +
+      '<label class="chk"><input type="checkbox" name="feesOn"' + (st.feesOn ? ' checked' : '') + '>This school collects fees (turns on the Fees module in a later chunk)</label>' +
+      '<button class="btn p" type="submit" style="margin-top:10px">Save</button></form></div>';
+  },
+  schools: function () {
+    var h = '<div class="card"><h3 style="margin-bottom:8px">Your schools</h3>' + schoolList().map(function (x) {
+      return '<div class="row" style="margin:6px 0"><b>' + esc(x.profile.name) + '</b><span class="tag">' + (x.profile.type === 'government' ? 'Government' : 'Private') + '</span><span class="mut">' + x.students.length + ' students</span><div class="sp"></div>' +
+        (x.id === DB.active ? '<span class="tag ok">Open now</span>' : '<button class="btn s" data-a="openSchool" data-id="' + x.id + '">Open</button>') + '</div>';
+    }).join('') + '<div style="margin-top:12px"><button class="btn p" data-a="addSchool">+ Add another school</button></div></div>' +
+      '<div class="card"><h3 style="margin-bottom:6px">Delete this school</h3><p class="mut">Removes <b>' + esc(S().profile.name) + '</b> and all its data from this device. Download a backup first.</p><button class="btn d" data-a="delSchool">Delete this school…</button></div>';
+    return h;
+  },
+  backup: function () {
+    return '<div class="card"><h3 style="margin-bottom:6px">Backup</h3><p class="mut">All data lives in this browser. If you clear browser data or change the phone, it is gone. Download a backup every week and keep it in WhatsApp saved messages, Google Drive or a USB.</p>' +
+      '<button class="btn p" data-a="dlBackup">Download backup (all schools)</button></div>' +
+      '<div class="card"><h3 style="margin-bottom:6px">Restore</h3><p class="mut">Choose a backup file. This replaces everything on this device.</p><input type="file" accept=".json,application/json" data-c="restore"></div>';
+  }
+};
+
+function fmtAdm(st, n) { var d = String(n); while (d.length < st.admPad) d = '0' + d; return (st.admPrefix || '') + d; }
+
+APP.forms.saveProfile = function (f) {
+  var d = formData(f), p = S().profile;
+  ['name', 'type', 'motto', 'city', 'phone', 'email', 'principal', 'address', 'year', 'color'].forEach(function (k) { p[k] = d[k]; });
+  save(); rerender(); toast('Saved');
+};
+APP.inp = APP.inp || {}; APP.chg = APP.chg || {};
+APP.inp.color = function (el) { document.documentElement.style.setProperty('--brand', el.value); };
+APP.act.rmLogo = function () { S().profile.logo = ''; save(); rerender(); };
+APP.chg.logo = function (el) {
+  var file = el.files[0]; if (!file) return;
+  var r = new FileReader();
+  r.onload = function () {
+    var img = new Image();
+    img.onload = function () {
+      var max = 200, k = Math.min(1, max / Math.max(img.width, img.height)), c = document.createElement('canvas');
+      c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      S().profile.logo = c.toDataURL('image/png'); save(); rerender(); toast('Logo saved');
+    };
+    img.onerror = function () { toast('That file is not a picture.'); };
+    img.src = r.result;
+  };
+  r.readAsDataURL(file);
+};
+
+APP.forms.saveClasses = function (f) {
+  var s = S(), lines = formData(f).txt.split('\n').map(function (l) { return l.trim(); }).filter(Boolean), out = [], seen = {};
+  for (var i = 0; i < lines.length; i++) {
+    var parts = lines[i].split('|'), name = parts[0].trim(); if (!name) continue;
+    if (seen[name.toLowerCase()]) { toast('Class "' + name + '" is listed twice.'); return; }
+    seen[name.toLowerCase()] = 1;
+    var secs = (parts[1] || 'A').split(',').map(function (x) { return x.trim(); }).filter(Boolean); if (!secs.length) secs = ['A'];
+    var old = s.classes.filter(function (c) { return c.name.toLowerCase() === name.toLowerCase(); })[0];
+    out.push({ id: old ? old.id : uid(), name: name, sections: secs });
+  }
+  if (!out.length) { toast('Add at least one class.'); return; }
+  for (var j = 0; j < s.classes.length; j++) {
+    var oc = s.classes[j], kept = out.filter(function (c) { return c.id === oc.id; })[0];
+    var users = s.students.filter(function (x) { return x.status === 'active' && x.classId === oc.id; });
+    if (!kept && users.length) { toast('"' + oc.name + '" still has ' + users.length + ' active students.'); return; }
+    if (kept) {
+      var bad = users.filter(function (x) { return kept.sections.indexOf(x.section) < 0; });
+      if (bad.length) { toast('Section "' + bad[0].section + '" of ' + oc.name + ' still has students.'); return; }
+    }
+  }
+  s.classes = out; save(); rerender(); toast('Classes saved');
+};
+APP.forms.saveFields = function (f) {
+  var d = formData(f), fl = S().settings.fields; Object.keys(FIELD_LABELS).forEach(function (k) { fl[k] = !!d[k]; }); save(); toast('Saved');
+};
+APP.forms.saveNumbers = function (f) {
+  var d = formData(f), st = S().settings;
+  st.admLabel = d.admLabel || 'Admission No'; st.admAuto = d.admAuto === '1'; st.admPrefix = d.admPrefix;
+  st.admNext = Math.max(1, parseInt(d.admNext, 10) || 1); st.admPad = Math.min(8, Math.max(1, parseInt(d.admPad, 10) || 4)); st.feesOn = !!d.feesOn;
+  save(); rerender(); toast('Saved');
+};
+APP.act.openSchool = function (el) { DB.active = el.getAttribute('data-id'); schoolChanged(); save(); setTab = 'profile'; location.hash = '#/home'; route(); };
+APP.act.addSchool = function () { showWelcome(true); };
+APP.act.delSchool = function () {
+  var s = S(), n = window.prompt('Type the school name to confirm deleting everything:\n' + s.profile.name);
+  if (n === null) return; if (n.trim() !== s.profile.name) { toast('Name did not match. Nothing deleted.'); return; }
+  delete DB.schools[s.id]; if (APP.schoolDeleted) APP.schoolDeleted(s.id); var left = Object.keys(DB.schools); DB.active = left.length ? left[0] : null; save(); location.hash = '#/home'; route();
+};
+APP.act.dlBackup = function () { download('school-backup-' + today() + '.json', JSON.stringify(DB), 'application/json'); toast('Backup downloaded'); };
+APP.chg.restore = function (el) {
+  var file = el.files[0]; if (!file) return;
+  var r = new FileReader();
+  r.onload = function () {
+    try {
+      var d = JSON.parse(r.result); if (!d || !d.schools || typeof d.schools !== 'object') throw 0;
+      if (!ask('Replace ALL data on this device with this backup?')) return;
+      DB = d; if (!DB.schools[DB.active]) DB.active = Object.keys(DB.schools)[0] || null; save(); if (APP.restored) APP.restored(); location.hash = '#/home'; route(); toast('Backup restored');
+    } catch (e) { toast('That is not a valid backup file.'); }
+  };
+  r.readAsText(file);
+};
+
+
+// ===== CHUNK 1c: Students (admit, edit, withdraw, re-admit, search, import/export, leaving certificate) =====
+var stF = { q: '', cls: '', status: 'active', page: 0 };
+var PAGE = 50;
+(APP.onSchool = APP.onSchool || []).push(function () { stF = { q: '', cls: '', status: 'active', page: 0 }; });
+var REASONS = ['Family moved to another city', 'Fee problem', 'Passed out (finished school)', 'Transferred to another school', 'Joined a madrasa', 'Other'];
+
+APP.mods.push({
+  id: 'students', label: 'Students', order: 20,
+  render: function () {
+    var s = S();
+    return '<div class="row" style="margin-bottom:12px"><h1>Students</h1><div class="sp"></div>' +
+      '<button class="btn" data-a="import">Import</button><button class="btn" data-a="exportCsv">Export</button><button class="btn p" data-a="admit">+ Admit student</button></div>' +
+      '<div class="card"><div class="g3"><label class="f"><span>Search name, father, number, phone</span><input data-i="stq" value="' + esc(stF.q) + '" placeholder="Type to search"></label>' +
+      '<label class="f"><span>Class</span><select data-c="stcls"><option value="">All classes</option>' + opt(s.classes, stF.cls, 'id', 'name') + '</select></label>' +
+      '<label class="f"><span>Status</span><select data-c="ststatus">' +
+      ['active|Active', 'withdrawn|Withdrawn', 'all|All'].map(function (x) { var p = x.split('|'); return '<option value="' + p[0] + '"' + (stF.status === p[0] ? ' selected' : '') + '>' + p[1] + '</option>'; }).join('') +
+      '</select></label></div></div><div id="stlist"></div>';
+  },
+  after: function () { drawList(); }
+});
+
+function filtered() {
+  var s = S(), q = stF.q.toLowerCase();
+  return s.students.filter(function (x) {
+    if (stF.status !== 'all' && x.status !== stF.status) return false;
+    if (stF.cls && x.classId !== stF.cls) return false;
+    if (q) { var hay = (x.name + ' ' + x.fatherName + ' ' + x.admNo + ' ' + x.phone + ' ' + (x.bForm || '')).toLowerCase(); if (hay.indexOf(q) < 0) return false; }
+    return true;
+  }).sort(function (a, b) {
+    var ca = S().classes.map(function (c) { return c.id; }), d = ca.indexOf(a.classId) - ca.indexOf(b.classId);
+    return d || a.section.localeCompare(b.section) || a.name.localeCompare(b.name);
+  });
+}
+function drawList() {
+  var el = $('stlist'); if (!el) return;
+  var s = S(), list = filtered(), pages = Math.max(1, Math.ceil(list.length / PAGE));
+  if (stF.page >= pages) stF.page = pages - 1;
+  var part = list.slice(stF.page * PAGE, stF.page * PAGE + PAGE);
+  if (!list.length) { el.innerHTML = '<div class="card mut">' + (s.students.length ? 'No students match.' : 'No students yet. Click "+ Admit student" or "Import".') + '</div>'; return; }
+  el.innerHTML = '<div class="mut" style="margin:0 0 6px">' + list.length + ' students</div><div class="tw"><table><thead><tr><th>' + esc(s.settings.admLabel) + '</th><th>Name</th><th>Father</th><th>Class</th><th>Phone</th><th></th></tr></thead><tbody>' +
+    part.map(function (x) {
+      return '<tr class="click" data-a="profile" data-id="' + x.id + '"><td>' + esc(x.admNo) + '</td><td><b>' + esc(x.name) + '</b></td><td>' + esc(x.fatherName) + '</td><td>' + esc(className(x.classId)) + ' – ' + esc(x.section) + '</td><td>' + esc(x.phone) + '</td><td>' + (x.status === 'active' ? '' : '<span class="tag bad">Withdrawn</span>') + '</td></tr>';
+    }).join('') + '</tbody></table></div>' +
+    (pages > 1 ? '<div class="row" style="margin-top:10px"><button class="btn s" data-a="pg" data-d="-1"' + (stF.page === 0 ? ' disabled' : '') + '>Previous</button><span class="mut">Page ' + (stF.page + 1) + ' of ' + pages + '</span><button class="btn s" data-a="pg" data-d="1"' + (stF.page >= pages - 1 ? ' disabled' : '') + '>Next</button></div>' : '');
+}
+APP.inp = APP.inp || {}; APP.chg = APP.chg || {};
+APP.inp.stq = function (el) { stF.q = el.value; stF.page = 0; drawList(); };
+APP.chg.stcls = function (el) { stF.cls = el.value; stF.page = 0; drawList(); };
+APP.chg.ststatus = function (el) { stF.status = el.value; stF.page = 0; drawList(); };
+APP.act.pg = function (el) { stF.page += parseInt(el.getAttribute('data-d'), 10); drawList(); };
+
+function stById(id) { return S().students.filter(function (x) { return x.id === id; })[0]; }
+
+// ---------- admit / edit ----------
+function studentForm(x) {
+  var s = S(), st = s.settings, fl = st.fields, isNew = !x;
+  x = x || { classId: s.classes[0].id, section: s.classes[0].sections[0], gender: 'Male', admissionDate: today(), admNo: st.admAuto ? fmtAdm(st, st.admNext) : '' };
+  var cl = classById(x.classId) || s.classes[0];
+  var h = '<form data-f="saveStudent"><input type="hidden" name="id" value="' + esc(x.id || '') + '">' +
+    '<div class="g2"><label class="f"><span>Student name *</span><input name="name" value="' + esc(x.name) + '" required></label>' +
+    '<label class="f"><span>Father / guardian name *</span><input name="fatherName" value="' + esc(x.fatherName) + '" required></label></div>' +
+    '<div class="g3"><label class="f"><span>Gender</span><select name="gender">' + opt(['Male', 'Female'], x.gender) + '</select></label>' +
+    '<label class="f"><span>Date of birth</span><input type="date" name="dob" value="' + esc(x.dob) + '"></label>' +
+    '<label class="f"><span>' + esc(st.admLabel) + '</span><input name="admNo" value="' + esc(x.admNo) + '" ' + (st.admAuto ? '' : 'required') + '></label></div>' +
+    '<div class="g3"><label class="f"><span>Class *</span><select name="classId" data-c="clsSel">' + opt(s.classes, x.classId, 'id', 'name') + '</select></label>' +
+    '<label class="f"><span>Section</span><select name="section" id="secSel">' + opt(cl.sections, x.section) + '</select></label>' +
+    '<label class="f"><span>Admission date</span><input type="date" name="admissionDate" value="' + esc(x.admissionDate) + '"></label></div>' +
+    '<div class="g2"><label class="f"><span>Phone</span><input name="phone" value="' + esc(x.phone) + '" inputmode="tel"></label>' +
+    (fl.whatsapp ? '<label class="f"><span>Guardian WhatsApp</span><input name="whatsapp" value="' + esc(x.whatsapp) + '" inputmode="tel" placeholder="03xx-xxxxxxx"></label>' : '') + '</div>';
+  var extra = '';
+  if (fl.bForm) extra += '<label class="f"><span>B-Form / CRC number</span><input name="bForm" value="' + esc(x.bForm) + '"></label>';
+  if (fl.fatherCnic) extra += '<label class="f"><span>Father CNIC</span><input name="fatherCnic" value="' + esc(x.fatherCnic) + '"></label>';
+  if (fl.religion) extra += '<label class="f"><span>Religion</span><input name="religion" value="' + esc(x.religion) + '"></label>';
+  if (fl.bloodGroup) extra += '<label class="f"><span>Blood group</span><input name="bloodGroup" value="' + esc(x.bloodGroup) + '"></label>';
+  if (fl.domicile) extra += '<label class="f"><span>Domicile / district</span><input name="domicile" value="' + esc(x.domicile) + '"></label>';
+  if (fl.disability) extra += '<label class="f"><span>Special need / disability</span><input name="disability" value="' + esc(x.disability) + '" placeholder="None"></label>';
+  if (fl.prevSchool) extra += '<label class="f"><span>Previous school</span><input name="prevSchool" value="' + esc(x.prevSchool) + '"></label>';
+  if (extra) h += '<div class="g2">' + extra + '</div>';
+  if (fl.address) h += '<label class="f"><span>Home address</span><input name="address" value="' + esc(x.address) + '"></label>';
+  if (fl.notes) h += '<label class="f"><span>Notes</span><textarea name="notes" rows="2">' + esc(x.notes) + '</textarea></label>';
+  return h + '<div class="row"><button class="btn p" type="submit">' + (isNew ? 'Admit student' : 'Save changes') + '</button><button class="btn" type="button" data-a="close">Cancel</button></div></form>';
+}
+APP.act.admit = function () { if (!S().classes.length) return toast('Add a class in Settings first.'); modal('Admit new student', studentForm(null), true); };
+APP.act.edit = function (el) { var x = stById(el.getAttribute('data-id')); modal('Edit student', studentForm(x), true); };
+APP.chg.clsSel = function (el) { var c = classById(el.value); $('secSel').innerHTML = opt(c.sections, c.sections[0]); };
+
+var TEXT_FIELDS = ['name', 'fatherName', 'gender', 'dob', 'admNo', 'classId', 'section', 'admissionDate', 'phone', 'whatsapp', 'bForm', 'fatherCnic', 'religion', 'bloodGroup', 'domicile', 'disability', 'prevSchool', 'address', 'notes'];
+APP.forms.saveStudent = function (f) {
+  var d = formData(f), s = S(), st = s.settings;
+  if (!d.name || !d.fatherName) return toast('Name and father name are needed.');
+  var x = d.id ? stById(d.id) : null;
+  if (d.admNo) {
+    var dup = s.students.filter(function (o) { return o.admNo === d.admNo && (!x || o.id !== x.id); })[0];
+    if (dup) return toast(st.admLabel + ' ' + d.admNo + ' is already used by ' + dup.name + '.');
+  }
+  if (!x) { x = { id: uid(), status: 'active', created: today() }; s.students.push(x); }
+  TEXT_FIELDS.forEach(function (k) { if (d[k] !== undefined) x[k] = d[k]; else if (x[k] === undefined) x[k] = ''; });
+  if (!x.admNo) x.admNo = fmtAdm(st, st.admNext);
+  if (st.admAuto && x.admNo === fmtAdm(st, st.admNext)) st.admNext++;
+  save(); closeModal(); rerender(); toast('Saved');
+};
+
+// ---------- profile ----------
+APP.act.profile = function (el) {
+  var x = stById(el.getAttribute('data-id')), s = S(), st = s.settings, fl = st.fields;
+  function r(l, v) { return v ? '<tr><td class="mut" style="width:40%">' + esc(l) + '</td><td>' + esc(v) + '</td></tr>' : ''; }
+  var h = '<table><tbody>' + r(st.admLabel, x.admNo) + r('Father / guardian', x.fatherName) + r('Gender', x.gender) + r('Date of birth', fmtDate(x.dob)) +
+    r('Class', className(x.classId) + ' – ' + x.section) + r('Admission date', fmtDate(x.admissionDate)) + r('Phone', x.phone) + r('WhatsApp', x.whatsapp) +
+    r('B-Form', x.bForm) + r('Father CNIC', x.fatherCnic) + r('Religion', x.religion) + r('Blood group', x.bloodGroup) + r('Domicile', x.domicile) + r('Special need', x.disability) +
+    r('Previous school', x.prevSchool) + r('Address', x.address) + r('Notes', x.notes);
+  (APP.profileRows || []).forEach(function (fn) { h += fn(x) || ''; });
+  if (x.status !== 'active') h += r('Withdrawn on', fmtDate(x.withdrawDate)) + r('Reason', x.withdrawReason) + r('Remarks', x.withdrawNote);
+  h += '</tbody></table><div class="row" style="margin-top:14px"><button class="btn" data-a="edit" data-id="' + x.id + '">Edit</button>' +
+    (x.status === 'active' ? '<button class="btn" data-a="withdrawForm" data-id="' + x.id + '">Withdraw</button>' : '<button class="btn" data-a="readmit" data-id="' + x.id + '">Re-admit</button>') +
+    '<button class="btn" data-a="cert" data-id="' + x.id + '">Leaving certificate</button><div class="sp"></div><button class="btn d s" data-a="delStudent" data-id="' + x.id + '">Delete</button></div>';
+  modal(x.name + (x.status === 'active' ? '' : ' (withdrawn)'), h, false);
+};
+
+// ---------- withdraw / re-admit / delete ----------
+APP.act.withdrawForm = function (el) {
+  var x = stById(el.getAttribute('data-id'));
+  modal('Withdraw ' + x.name, '<form data-f="withdraw"><input type="hidden" name="id" value="' + x.id + '">' +
+    '<label class="f"><span>Date of leaving</span><input type="date" name="date" value="' + today() + '" required></label>' +
+    '<label class="f"><span>Reason</span><select name="reason">' + opt(REASONS, '') + '</select></label>' +
+    '<label class="f"><span>Remarks (optional)</span><textarea name="note" rows="2"></textarea></label>' +
+    '<p class="mut" style="font-size:13px">The record is kept. You can print the leaving certificate and re-admit later if needed.</p>' +
+    '<div class="row"><button class="btn p" type="submit">Withdraw student</button><button class="btn" type="button" data-a="close">Cancel</button></div></form>');
+};
+APP.forms.withdraw = function (f) {
+  var d = formData(f), x = stById(d.id); x.status = 'withdrawn'; x.withdrawDate = d.date; x.withdrawReason = d.reason; x.withdrawNote = d.note;
+  save(); closeModal(); rerender(); toast(x.name + ' withdrawn');
+};
+APP.act.readmit = function (el) {
+  var x = stById(el.getAttribute('data-id')), c = classById(x.classId);
+  if (!c) { x.classId = S().classes[0].id; c = S().classes[0]; }
+  if (c.sections.indexOf(x.section) < 0) x.section = c.sections[0];
+  x.status = 'active'; x.withdrawDate = ''; x.withdrawReason = ''; x.withdrawNote = ''; save(); closeModal(); rerender(); toast('Re-admitted. Check the class and section.');
+};
+APP.act.delStudent = function (el) {
+  var x = stById(el.getAttribute('data-id'));
+  if (!ask('Delete ' + x.name + ' permanently? Use this only for mistakes. For a student who left, use Withdraw.')) return;
+  S().students = S().students.filter(function (o) { return o.id !== x.id; }); save(); closeModal(); rerender(); toast('Deleted');
+};
+
+// ---------- school leaving certificate ----------
+function letterHead(p) {
+  return '<div class="c">' + (p.logo ? '<img src="' + p.logo + '" style="height:70px">' : '') + '<h1 style="color:' + esc(p.color) + '">' + esc(p.name) + '</h1>' +
+    (p.motto ? '<div><i>' + esc(p.motto) + '</i></div>' : '') + '<div style="font-size:13px">' + esc([p.address, p.city, p.phone].filter(Boolean).join(' • ')) + '</div><hr></div>';
+}
+APP.letterHead = letterHead;
+APP.act.cert = function (el) {
+  var x = stById(el.getAttribute('data-id')), s = S(), p = s.profile, rel = x.gender === 'Female' ? 'D/o' : 'S/o';
+  var end = x.status === 'active' ? today() : x.withdrawDate;
+  printHtml('<div class="cert">' + letterHead(p) + '<h2 class="c" style="margin:14px 0"><u>SCHOOL LEAVING CERTIFICATE</u></h2>' +
+    '<p>This is to certify that <b>' + esc(x.name) + '</b> ' + rel + ' <b>' + esc(x.fatherName) + '</b>, bearing ' + esc(s.settings.admLabel) + ' <b>' + esc(x.admNo) + '</b>' +
+    (x.dob ? ', date of birth <b>' + fmtDate(x.dob) + '</b>' : '') + ', was a student of this school from <b>' + fmtDate(x.admissionDate) + '</b> to <b>' + fmtDate(end) + '</b>, ' +
+    'and was studying in <b>' + esc(className(x.classId)) + '</b> at the time of leaving.</p>' +
+    (x.withdrawReason ? '<p>Reason for leaving: ' + esc(x.withdrawReason) + '.</p>' : '') +
+    '<p>To the best of our knowledge, his/her conduct was satisfactory.</p>' +
+    '<div class="sig"><span>Date: ' + fmtDate(today()) + '</span><span>' + (p.principal ? esc(p.principal) + '<br>' : '') + 'Principal / Head</span></div></div>');
+};
+
+// ---------- export / import ----------
+var CSV_COLS = ['admNo', 'name', 'fatherName', 'gender', 'dob', 'class', 'section', 'phone', 'whatsapp', 'bForm', 'admissionDate', 'status'];
+function csvCell(v) { v = String(v == null ? '' : v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }
+APP.act.exportCsv = function () {
+  var rows = [CSV_COLS.join(',')];
+  S().students.forEach(function (x) { rows.push(CSV_COLS.map(function (c) { return csvCell(c === 'class' ? className(x.classId) : x[c]); }).join(',')); });
+  download('students-' + today() + '.csv', '﻿' + rows.join('\r\n'), 'text/csv'); toast('Exported ' + S().students.length + ' students');
+};
+function parseCsv(t) {
+  var rows = [], row = [], cur = '', q = false, i, c;
+  t = t.replace(/^﻿/, '');
+  for (i = 0; i < t.length; i++) {
+    c = t[i];
+    if (q) { if (c === '"') { if (t[i + 1] === '"') { cur += '"'; i++; } else q = false; } else cur += c; }
+    else if (c === '"') q = true;
+    else if (c === ',' || c === '\t') { row.push(cur); cur = ''; }
+    else if (c === '\n') { row.push(cur); rows.push(row); row = []; cur = ''; }
+    else if (c !== '\r') cur += c;
+  }
+  if (cur !== '' || row.length) { row.push(cur); rows.push(row); }
+  return rows.filter(function (r) { return r.some(function (v) { return v.trim(); }); });
+}
+function normDate(v) {
+  v = (v || '').trim(); if (!v) return '';
+  var m = v.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})$/); if (m) return m[1] + '-' + ('0' + m[2]).slice(-2) + '-' + ('0' + m[3]).slice(-2);
+  m = v.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4})$/); if (m) return m[3] + '-' + ('0' + m[2]).slice(-2) + '-' + ('0' + m[1]).slice(-2);
+  return null;
+}
+var pendingImport = [];
+APP.act.import = function () {
+  modal('Import students from a spreadsheet', '<p class="mut">Make a spreadsheet with these column names in the first row: <b>name, fatherName, gender, dob, class, section, phone, whatsapp, admNo, bForm</b>. Only name, fatherName and class are required. Save it as CSV, then choose it here (or paste the rows below).</p>' +
+    '<div class="row" style="margin-bottom:10px"><button class="btn s" data-a="tplCsv">Download blank template</button></div>' +
+    '<input type="file" accept=".csv,.txt,text/csv" data-c="importFile"><p class="mut" style="margin:8px 0">or paste:</p><textarea id="impText" rows="5" placeholder="name,fatherName,gender,dob,class,section,phone"></textarea>' +
+    '<div class="row" style="margin-top:10px"><button class="btn p" data-a="checkImport">Check</button></div><div id="impOut" style="margin-top:12px"></div>', true);
+};
+APP.act.tplCsv = function () { download('students-template.csv', 'name,fatherName,gender,dob,class,section,phone,whatsapp,admNo,bForm\r\nAli Khan,Gul Khan,Male,2015-04-12,Class 3,A,03001234567,03001234567,,\r\n', 'text/csv'); };
+APP.chg.importFile = function (el) { var f = el.files[0]; if (!f) return; var r = new FileReader(); r.onload = function () { $('impText').value = r.result; APP.act.checkImport(); }; r.readAsText(f); };
+APP.act.checkImport = function () {
+  var rows = parseCsv($('impText').value), out = $('impOut'), s = S(), st = s.settings;
+  if (rows.length < 2) { out.innerHTML = '<div class="note warn">Need a header row and at least one student.</div>'; return; }
+  var head = rows[0].map(function (h) { return h.toLowerCase().replace(/[^a-z]/g, ''); });
+  function col(n) { return head.indexOf(n); }
+  if (col('name') < 0 || col('fathername') < 0 || col('class') < 0) { out.innerHTML = '<div class="note warn">The first row must have the columns name, fatherName and class.</div>'; return; }
+  var errs = [], good = [], used = {}, next = st.admNext;
+  s.students.forEach(function (x) { used[x.admNo] = 1; });
+  rows.slice(1).forEach(function (r, i) {
+    function g(n) { var k = col(n); return k < 0 ? '' : (r[k] || '').trim(); }
+    var line = i + 2, nm = g('name'), fa = g('fathername'), cn = g('class');
+    if (!nm || !fa) return errs.push('Row ' + line + ': name or father name is empty.');
+    var c = s.classes.filter(function (c) { var a = c.name.toLowerCase(); return a === cn.toLowerCase() || a === 'class ' + cn.toLowerCase(); })[0];
+    if (!c) return errs.push('Row ' + line + ' (' + nm + '): class "' + cn + '" does not exist. Add it in Settings → Classes.');
+    var sec = g('section') || c.sections[0]; if (c.sections.indexOf(sec) < 0) return errs.push('Row ' + line + ' (' + nm + '): section "' + sec + '" does not exist in ' + c.name + '.');
+    var dob = normDate(g('dob')); if (dob === null) return errs.push('Row ' + line + ' (' + nm + '): date of birth "' + g('dob') + '" is not understood. Use 2015-04-12 or 12-04-2015.');
+    var gd = g('gender').toLowerCase(), gender = /^(f|female|girl)/.test(gd) ? 'Female' : 'Male';
+    var no = g('admno');
+    if (!no) { if (!st.admAuto) return errs.push('Row ' + line + ' (' + nm + '): ' + st.admLabel + ' is empty.'); while (used[fmtAdm(st, next)]) next++; no = fmtAdm(st, next); next++; }
+    if (used[no]) return errs.push('Row ' + line + ' (' + nm + '): ' + st.admLabel + ' ' + no + ' is already used.');
+    used[no] = 1;
+    var o = { id: uid(), status: 'active', created: today(), name: nm, fatherName: fa, gender: gender, dob: dob, admNo: no, classId: c.id, section: sec, admissionDate: normDate(g('admissiondate')) || today(), phone: g('phone'), whatsapp: g('whatsapp'), bForm: g('bform') };
+    TEXT_FIELDS.forEach(function (k) { if (o[k] === undefined) o[k] = ''; });
+    good.push(o);
+  });
+  pendingImport = good; pendingImport._next = next;
+  out.innerHTML = '<div class="note">' + good.length + ' students are ready to import.' + (errs.length ? ' ' + errs.length + ' rows have problems and will be skipped.' : '') + '</div>' +
+    (errs.length ? '<div style="max-height:160px;overflow:auto;margin-top:8px;font-size:13px;color:var(--bad)">' + errs.slice(0, 50).map(esc).join('<br>') + (errs.length > 50 ? '<br>…' : '') + '</div>' : '') +
+    (good.length ? '<div style="margin-top:10px"><button class="btn p" data-a="doImport">Import ' + good.length + ' students</button></div>' : '');
+};
+APP.act.doImport = function () {
+  var s = S(); pendingImport.forEach(function (o) { s.students.push(o); });
+  if (s.settings.admAuto && pendingImport._next > s.settings.admNext) s.settings.admNext = pendingImport._next;
+  var n = pendingImport.length; pendingImport = []; save(); closeModal(); rerender(); toast('Imported ' + n + ' students');
+};
+
+
+// ===== CHUNK 2: FEES =====
+// Ledger idea: every student has charges (what they owe) and payments (what they paid).
+// Balance = all charges - all payments. Unpaid amounts carry to the next month by themselves. No late fee.
+var feeTab = 'collect';
+var fq = '';
+
+function FS() { // fee data + settings, created on first use
+  var s = S();
+  if (!s.fees) s.fees = { charges: [], payments: [], rcpt: 1 };
+  var c = s.settings.fee;
+  if (!c) c = s.settings.fee = {
+    dueDay: 10, bankOn: true, bankName: '', accTitle: '', accNo: '', bankNote: 'Fee can also be paid at the school counter.',
+    slipsPerPage: 1, methods: ['Cash', 'Bank deposit', 'Easypaisa / JazzCash'],
+    heads: ['Admission fee', 'Annual fee', 'Exam fee', 'Stationery', 'Uniform', 'Other'],
+    reasons: ['Scholarship', 'Sibling discount', 'Staff child', 'Orphan / needy', 'Other']
+  };
+  return s.fees;
+}
+function FC() { FS(); return S().settings.fee; }
+
+APP.mods.push({
+  id: 'fees', label: 'Fees', order: 30, when: function () { return S().settings.feesOn; },
+  render: function () {
+    FS();
+    var tabs = [['collect', 'Collect fee'], ['slips', 'Make & print slips'], ['dues', 'Unpaid / reports'], ['setup', 'Fee setup']];
+    return '<h1 style="margin-bottom:12px">Fees</h1><div class="tabs">' + tabs.map(function (t) { return '<button data-a="feeTab" data-t="' + t[0] + '" class="' + (t[0] === feeTab ? 'on' : '') + '">' + t[1] + '</button>'; }).join('') + '</div>' + FTAB[feeTab]();
+  },
+  after: function () { if (feeTab === 'collect') drawFound(); if (feeTab === 'dues') drawDues(); if (feeTab === 'daily') drawDaily(); }
+});
+APP.act.feeTab = function (el) { feeTab = el.getAttribute('data-t'); rerender(); };
+
+// ---------- calculations ----------
+function money2(n) { return money(n); }
+function ledgerMaps() { // totals per student, fast for 1500 students
+  var f = FS(), m = {};
+  function g(id) { return m[id] || (m[id] = { ch: 0, pay: 0 }); }
+  f.charges.forEach(function (c) { g(c.stuId).ch += c.amount; });
+  f.payments.forEach(function (p) { g(p.stuId).pay += p.amount; });
+  return m;
+}
+function balanceOf(id, maps) { var x = (maps || ledgerMaps())[id]; return x ? x.ch - x.pay : 0; }
+function chargesBefore(id, month) { return FS().charges.filter(function (c) { return c.stuId === id && c.month < month; }).reduce(function (a, c) { return a + c.amount; }, 0); }
+function paidTotal(id) { return FS().payments.filter(function (p) { return p.stuId === id; }).reduce(function (a, p) { return a + p.amount; }, 0); }
+function discountOf(x, fee) {
+  var d = x.feeDisc; if (!d || !d.value) return 0;
+  var v = d.type === 'percent' ? Math.round(fee * d.value / 100) : Number(d.value);
+  return Math.min(fee, Math.max(0, v));
+}
+
+// ---------- TAB: collect ----------
+var FTAB = {};
+FTAB.collect = function () {
+  return '<div class="card"><label class="f"><span>Find student (name, father, ' + esc(S().settings.admLabel) + ', phone)</span><input data-i="fq" value="' + esc(fq) + '" placeholder="Type to search" autocomplete="off"></label><div id="fres"></div></div>' +
+    '<div class="note">Tip: after you find the student you can take a payment, add a one-time charge (admission fee, uniform…), set a discount or transport fee, and print a receipt.</div>';
+};
+APP.inp.fq = function (el) { fq = el.value; drawFound(); };
+function drawFound() {
+  var el = $('fres'); if (!el) return; var q = fq.trim().toLowerCase();
+  if (!q) { el.innerHTML = ''; return; }
+  var list = S().students.filter(function (x) { return (x.name + ' ' + x.fatherName + ' ' + x.admNo + ' ' + x.phone).toLowerCase().indexOf(q) >= 0; }).slice(0, 12), maps = ledgerMaps();
+  el.innerHTML = list.length ? '<div class="tw"><table><tbody>' + list.map(function (x) {
+    var b = balanceOf(x.id, maps);
+    return '<tr class="click" data-a="ledger" data-id="' + x.id + '"><td><b>' + esc(x.name) + '</b>' + (x.status === 'active' ? '' : ' <span class="tag bad">Withdrawn</span>') + '<div class="mut">' + esc(x.fatherName) + '</div></td><td>' + esc(x.admNo) + '</td><td>' + esc(className(x.classId)) + ' – ' + esc(x.section) + '</td><td style="text-align:right"><b style="color:' + (b > 0 ? 'var(--bad)' : 'var(--ok)') + '">' + (b > 0 ? money(b) + ' due' : b < 0 ? money(-b) + ' advance' : 'Clear') + '</b></td></tr>';
+  }).join('') + '</tbody></table></div>' : '<p class="mut">No student found.</p>';
+}
+APP.act.ledger = function (el) { openLedger(el.getAttribute('data-id')); };
+
+function openLedger(id) {
+  var x = stById(id), f = FS(), c = FC(), bal = balanceOf(id);
+  var rows = [];
+  f.charges.filter(function (o) { return o.stuId === id; }).forEach(function (o) { rows.push({ d: o.month, t: 'c', o: o }); });
+  f.payments.filter(function (o) { return o.stuId === id; }).forEach(function (o) { rows.push({ d: o.date, t: 'p', o: o }); });
+  rows.sort(function (a, b) { return (b.d + (b.o.created || '')).localeCompare(a.d + (a.o.created || '')); });
+  var disc = x.feeDisc || { type: 'amount', value: '', reason: '' };
+  var h = '<div class="stats"><div class="stat"><span class="mut">' + esc(className(x.classId)) + ' – ' + esc(x.section) + ' • ' + esc(S().settings.admLabel) + ' ' + esc(x.admNo) + '</span><b style="color:' + (bal > 0 ? 'var(--bad)' : 'var(--ok)') + '">' + (bal > 0 ? money(bal) + ' due' : bal < 0 ? money(-bal) + ' advance' : 'Clear') + '</b></div></div>' +
+    '<div class="card"><h3 style="margin-bottom:8px">Take payment</h3><form data-f="addPay"><input type="hidden" name="id" value="' + id + '"><div class="g3">' +
+    '<label class="f"><span>Amount</span><input type="number" min="1" name="amount" value="' + (bal > 0 ? bal : '') + '" required></label>' +
+    '<label class="f"><span>Date</span><input type="date" name="date" value="' + today() + '" required></label>' +
+    '<label class="f"><span>Method</span><select name="method">' + opt(c.methods, '') + '</select></label></div>' +
+    '<label class="f"><span>Note (optional)</span><input name="note"></label><button class="btn p" type="submit">Save payment &amp; print receipt</button></form></div>' +
+    '<div class="card"><h3 style="margin-bottom:8px">Add one-time charge</h3><form data-f="addCharge"><input type="hidden" name="id" value="' + id + '"><div class="g3">' +
+    '<label class="f"><span>What for</span><input name="title" list="heads" required><datalist id="heads">' + c.heads.map(function (t) { return '<option value="' + esc(t) + '">'; }).join('') + '</datalist></label>' +
+    '<label class="f"><span>Amount</span><input type="number" min="1" name="amount" required></label>' +
+    '<label class="f"><span>Month</span><input type="month" name="month" value="' + thisMonth() + '" required></label></div><button class="btn" type="submit">Add charge</button></form></div>' +
+    '<div class="card"><h3 style="margin-bottom:8px">Discount and transport (applies to fees made from now on)</h3><form data-f="saveDisc"><input type="hidden" name="id" value="' + id + '"><div class="g3">' +
+    '<label class="f"><span>Discount type</span><select name="type"><option value="amount"' + (disc.type === 'amount' ? ' selected' : '') + '>Rs per month</option><option value="percent"' + (disc.type === 'percent' ? ' selected' : '') + '>Percent of tuition</option></select></label>' +
+    '<label class="f"><span>Discount</span><input type="number" min="0" name="value" value="' + esc(disc.value) + '"></label>' +
+    '<label class="f"><span>Reason</span><select name="reason"><option value="">—</option>' + opt(c.reasons, disc.reason) + '</select></label></div>' +
+    '<label class="f"><span>Transport fee per month (0 = none)</span><input type="number" min="0" name="transport" value="' + esc(x.transport || 0) + '"></label><button class="btn" type="submit">Save</button></form></div>' +
+    '<h3 style="margin:6px 0">History</h3><div class="tw"><table><thead><tr><th>When</th><th>Details</th><th style="text-align:right">Charge</th><th style="text-align:right">Paid</th><th></th></tr></thead><tbody>' +
+    (rows.length ? rows.map(function (r) {
+      return r.t === 'c' ? '<tr><td>' + monthLabel(r.o.month) + '</td><td>' + esc(r.o.title) + '</td><td style="text-align:right">' + money(r.o.amount) + '</td><td></td><td><button class="btn s d" data-a="delCharge" data-id="' + r.o.id + '">×</button></td></tr>'
+        : '<tr><td>' + fmtDate(r.o.date) + '</td><td>Payment #' + r.o.rcpt + ' (' + esc(r.o.method) + ')' + (r.o.note ? ' – ' + esc(r.o.note) : '') + '</td><td></td><td style="text-align:right">' + money(r.o.amount) + '</td><td><button class="btn s" data-a="rcpt" data-id="' + r.o.id + '">Receipt</button> <button class="btn s d" data-a="delPay" data-id="' + r.o.id + '">×</button></td></tr>';
+    }).join('') : '<tr><td colspan="5" class="mut">Nothing yet.</td></tr>') + '</tbody></table></div>';
+  modal(x.name, h, true);
+}
+APP.forms.addPay = function (f) {
+  var d = formData(f), fs = FS(), amt = Math.round(Number(d.amount));
+  if (!(amt > 0)) return toast('Enter an amount.');
+  var p = { id: uid(), stuId: d.id, date: d.date, amount: amt, method: d.method, note: d.note, rcpt: fs.rcpt++, created: new Date().toISOString() };
+  fs.payments.push(p); save(); openLedger(d.id); toast('Payment saved'); APP.act.rcpt({ getAttribute: function () { return p.id; } });
+};
+APP.forms.addCharge = function (f) {
+  var d = formData(f), amt = Math.round(Number(d.amount)); if (!(amt > 0) || !d.title) return toast('Fill what for and amount.');
+  FS().charges.push({ id: uid(), stuId: d.id, month: d.month, title: d.title, amount: amt, kind: 'misc', created: new Date().toISOString() });
+  save(); openLedger(d.id); toast('Charge added');
+};
+APP.forms.saveDisc = function (f) {
+  var d = formData(f), x = stById(d.id); x.feeDisc = { type: d.type, value: Number(d.value) || 0, reason: d.reason }; x.transport = Math.max(0, Number(d.transport) || 0);
+  save(); toast('Saved. It applies to fees made from now on.');
+};
+APP.act.delCharge = function (el) {
+  if (!ask('Remove this charge?')) return; var c = FS().charges.filter(function (o) { return o.id === el.getAttribute('data-id'); })[0];
+  FS().charges = FS().charges.filter(function (o) { return o !== c; }); save(); openLedger(c.stuId);
+};
+APP.act.delPay = function (el) {
+  if (!ask('Remove this payment? Do this only if it was entered by mistake.')) return; var p = FS().payments.filter(function (o) { return o.id === el.getAttribute('data-id'); })[0];
+  FS().payments = FS().payments.filter(function (o) { return o !== p; }); save(); openLedger(p.stuId);
+};
+APP.act.rcpt = function (el) {
+  var p = FS().payments.filter(function (o) { return o.id === el.getAttribute('data-id'); })[0], x = stById(p.stuId), pr = S().profile, bal = balanceOf(p.stuId);
+  function rec(label) {
+    return '<div class="slip" style="margin-bottom:8px">' + APP.slipHead(pr) + '<div class="cp">FEE RECEIPT – ' + label + '</div><table><tbody>' +
+      '<tr><td>Receipt no</td><td><b>' + p.rcpt + '</b></td><td>Date</td><td>' + fmtDate(p.date) + '</td></tr>' +
+      '<tr><td>Student</td><td colspan="3"><b>' + esc(x.name) + '</b> (' + esc(S().settings.admLabel) + ' ' + esc(x.admNo) + ')</td></tr>' +
+      '<tr><td>Father</td><td>' + esc(x.fatherName) + '</td><td>Class</td><td>' + esc(className(x.classId)) + ' – ' + esc(x.section) + '</td></tr>' +
+      '<tr><td>Received</td><td><b>' + money(p.amount) + '</b></td><td>Method</td><td>' + esc(p.method) + '</td></tr>' +
+      '<tr><td>Balance after</td><td colspan="3"><b>' + (bal > 0 ? money(bal) + ' still due' : bal < 0 ? money(-bal) + ' advance' : 'Nothing due') + '</b></td></tr></tbody></table>' +
+      '<div class="sg"><span>Received by</span><span>Stamp</span></div></div>';
+  }
+  printHtml('<div class="slipsheet one" style="max-width:420px;margin:0 auto">' + rec('Parent copy') + rec('School copy') + '</div>');
+};
+APP.slipHead = function (pr) {
+  return (pr.logo ? '<img src="' + pr.logo + '" alt="">' : '') + '<h4 style="color:' + esc(pr.color) + '">' + esc(pr.name) + '</h4><div style="text-align:center;font-size:.85em">' + esc([pr.address, pr.city, pr.phone].filter(Boolean).join(' • ')) + '</div>';
+};
+
+// ---------- TAB: slips ----------
+var slipSel = { month: thisMonth(), cls: '' };
+FTAB.slips = function () {
+  var s = S(), n = FS().charges.filter(function (c) { return c.month === slipSel.month && c.kind !== 'misc'; }).length;
+  return '<div class="card"><div class="g3"><label class="f"><span>Month</span><input type="month" data-c="slMonth" value="' + slipSel.month + '"></label>' +
+    '<label class="f"><span>Class (for printing)</span><select data-c="slCls"><option value="">All classes</option>' + opt(s.classes, slipSel.cls, 'id', 'name') + '</select></label></div>' +
+    '<div class="row"><button class="btn p" data-a="genFees">1. Make fees for ' + monthLabel(slipSel.month) + '</button><button class="btn" data-a="printSlips">2. Print slips</button><button class="btn d" data-a="undoGen">Remove made fees of this month</button></div>' +
+    '<p class="mut" style="margin-bottom:0">' + n + ' tuition/transport charges exist for this month. Making fees twice does not duplicate. Unpaid money from earlier months is added to each slip automatically.</p></div>' +
+    '<div class="note">Each slip prints as three columns on one page (Student copy, School copy and ' + (FC().bankOn ? 'Bank copy' : 'Accounts copy') + '). Set the bank details and slips per page in Fee setup. In the print window choose <b>Landscape</b> if it is not already.</div>';
+};
+APP.chg.slMonth = function (el) { if (el.value) { slipSel.month = el.value; rerender(); } };
+APP.chg.slCls = function (el) { slipSel.cls = el.value; };
+APP.act.genFees = function () {
+  var s = S(), fs = FS(), M = slipSel.month, made = 0, noFee = 0, have = {};
+  fs.charges.forEach(function (c) { if (c.month === M && c.kind !== 'misc') have[c.stuId + c.kind] = 1; });
+  s.students.forEach(function (x) {
+    if (x.status !== 'active') return;
+    if ((x.admissionDate || '').slice(0, 7) > M) return;           // not admitted yet that month
+    var cl = classById(x.classId), fee = cl && Number(cl.fee) || 0;
+    if (fee <= 0) { noFee++; return; }
+    if (!have[x.id + 'tuition']) { fs.charges.push({ id: uid(), stuId: x.id, month: M, title: 'Tuition fee' + (discountOf(x, fee) ? ' (after discount)' : ''), amount: fee - discountOf(x, fee), kind: 'tuition', created: new Date().toISOString() }); made++; }
+    if ((Number(x.transport) || 0) > 0 && !have[x.id + 'transport']) fs.charges.push({ id: uid(), stuId: x.id, month: M, title: 'Transport fee', amount: Number(x.transport), kind: 'transport', created: new Date().toISOString() });
+  });
+  save(); rerender(); toast(made + ' fees made for ' + monthLabel(M) + (noFee ? '. ' + noFee + ' students skipped because their class has no fee set (Fee setup).' : ''));
+};
+APP.act.undoGen = function () {
+  var M = slipSel.month; if (!ask('Remove all made tuition and transport fees of ' + monthLabel(M) + '? One-time charges stay. Payments are not touched.')) return;
+  var fs = FS(), before = fs.charges.length; fs.charges = fs.charges.filter(function (c) { return !(c.month === M && c.kind !== 'misc'); }); save(); rerender(); toast((before - fs.charges.length) + ' removed');
+};
+function slipFor(x, M) {
+  var c = FC(), pr = S().profile, cur = FS().charges.filter(function (o) { return o.stuId === x.id && o.month === M; });
+  var arrears = chargesBefore(x.id, M) - paidTotal(x.id), curTot = cur.reduce(function (a, o) { return a + o.amount; }, 0), total = arrears + curTot;
+  var due = M + '-' + ('0' + c.dueDay).slice(-2);
+  var labels = ['Student copy', 'School copy', c.bankOn ? 'Bank copy' : 'Accounts copy'];
+  var body = '<table><tbody>' + cur.map(function (o) { return '<tr><td>' + esc(o.title) + '</td><td style="text-align:right">' + money(o.amount) + '</td></tr>'; }).join('') +
+    (cur.length ? '' : '<tr><td colspan="2"><i>No fee made for this month</i></td></tr>') +
+    '<tr><td>' + (arrears < 0 ? 'Advance paid' : 'Previous unpaid (arrears)') + '</td><td style="text-align:right">' + money(arrears) + '</td></tr>' +
+    '<tr><td><b>Total payable</b></td><td style="text-align:right"><b>' + money(Math.max(0, total)) + '</b></td></tr></tbody></table>';
+  return labels.map(function (lb) {
+    return '<div class="slip">' + APP.slipHead(pr) + '<div class="cp">' + lb + ' – Fee slip ' + monthLabel(M) + '</div>' +
+      '<div><b>' + esc(x.name) + '</b> (' + esc(S().settings.admLabel) + ' ' + esc(x.admNo) + ')</div><div>Father: ' + esc(x.fatherName) + '</div><div>Class: ' + esc(className(x.classId)) + ' – ' + esc(x.section) + '</div>' + body +
+      '<div>Due date: <b>' + fmtDate(due) + '</b></div>' +
+      (c.bankOn && (c.bankName || c.accNo) ? '<div class="bank"><b>' + esc(c.bankName) + '</b><br>Title: ' + esc(c.accTitle) + '<br>A/C: ' + esc(c.accNo) + '</div>' : '') +
+      (c.bankNote ? '<div style="font-size:.85em;margin-top:3px">' + esc(c.bankNote) + '</div>' : '') +
+      '<div class="sg"><span>Cashier</span><span>Stamp</span></div></div>';
+  }).join('');
+}
+APP.act.printSlips = function () {
+  var M = slipSel.month, ids = {}; FS().charges.forEach(function (c) { if (c.month === M) ids[c.stuId] = 1; });
+  var list = S().students.filter(function (x) { return ids[x.id] && (!slipSel.cls || x.classId === slipSel.cls); });
+  if (!list.length) return toast('No fees for this month and class. Press "Make fees" first.');
+  list.sort(function (a, b) { var ca = S().classes.map(function (c) { return c.id; }); return ca.indexOf(a.classId) - ca.indexOf(b.classId) || a.section.localeCompare(b.section) || a.name.localeCompare(b.name); });
+  var per = FC().slipsPerPage === 2 ? 2 : 1, html = '';
+  if (list.length > 300 && !ask('Printing ' + list.length + ' slips. Continue? (You can pick one class to print fewer.)')) return;
+  for (var i = 0; i < list.length; i += per) {
+    html += '<div class="slipsheet ' + (per === 2 ? 'two' : 'one') + '">' + list.slice(i, i + per).map(function (x) { return '<div class="sliprow">' + slipFor(x, M) + '</div>'; }).join('') + '</div>';
+  }
+  printHtml(html, true);
+};
+
+// ---------- TAB: unpaid / reports ----------
+var dueF = { cls: '', min: 1, view: 'unpaid', day: today() };
+FTAB.dues = function () {
+  return '<div class="tabs"><button data-a="dueView" data-t="unpaid" class="' + (dueF.view === 'unpaid' ? 'on' : '') + '">Unpaid list</button><button data-a="dueView" data-t="daily" class="' + (dueF.view === 'daily' ? 'on' : '') + '">Daily collection</button></div>' +
+    (dueF.view === 'unpaid' ? '<div class="card"><div class="g3"><label class="f"><span>Class</span><select data-c="dueCls"><option value="">All</option>' + opt(S().classes, dueF.cls, 'id', 'name') + '</select></label>' +
+      '<label class="f"><span>Owing at least (Rs)</span><input type="number" min="1" data-i="dueMin" value="' + dueF.min + '"></label></div></div><div id="duelist"></div>'
+      : '<div class="card"><label class="f"><span>Day</span><input type="date" data-c="dayPick" value="' + dueF.day + '"></label></div><div id="duelist"></div>');
+};
+APP.act.dueView = function (el) { dueF.view = el.getAttribute('data-t'); rerender(); };
+APP.chg.dueCls = function (el) { dueF.cls = el.value; drawDues(); };
+APP.inp.dueMin = function (el) { dueF.min = Math.max(1, Number(el.value) || 1); drawDues(); };
+APP.chg.dayPick = function (el) { if (el.value) { dueF.day = el.value; drawDues(); } };
+function dueRows() {
+  var maps = ledgerMaps(), ci = S().classes.map(function (c) { return c.id; });
+  return S().students.map(function (x) { return { x: x, b: balanceOf(x.id, maps) }; }).filter(function (r) { return r.b >= dueF.min && (!dueF.cls || r.x.classId === dueF.cls); })
+    .sort(function (a, b) { return ci.indexOf(a.x.classId) - ci.indexOf(b.x.classId) || a.x.name.localeCompare(b.x.name); });
+}
+function drawDues() { if (dueF.view === 'daily') return drawDaily();
+  var el = $('duelist'); if (!el) return; var rows = dueRows(), tot = rows.reduce(function (a, r) { return a + r.b; }, 0);
+  el.innerHTML = '<div class="row" style="margin-bottom:8px"><b>' + rows.length + ' students owe ' + money(tot) + '</b><div class="sp"></div><button class="btn s" data-a="dueCsv">Download CSV</button><button class="btn s" data-a="duePrint">Print list</button></div>' +
+    '<div class="tw"><table><thead><tr><th>Name</th><th>Class</th><th>Phone</th><th style="text-align:right">Owes</th><th></th></tr></thead><tbody>' + rows.slice(0, 300).map(function (r) {
+      var msg = 'Assalam o Alaikum. Fee of ' + r.x.name + ' (' + className(r.x.classId) + ') is pending: ' + money(r.b) + ' till ' + fmtDate(today()) + '. Kindly pay at your earliest. - ' + S().profile.name;
+      var wa = waLink(r.x.whatsapp || r.x.phone, msg);
+      return '<tr><td><b>' + esc(r.x.name) + '</b><div class="mut">' + esc(r.x.fatherName) + '</div></td><td>' + esc(className(r.x.classId)) + ' – ' + esc(r.x.section) + '</td><td>' + esc(r.x.phone) + '</td><td style="text-align:right"><b>' + money(r.b) + '</b></td><td>' +
+        (wa ? '<a class="btn s" target="_blank" rel="noopener" href="' + wa + '">WhatsApp</a> ' : '') + '<button class="btn s" data-a="ledger" data-id="' + r.x.id + '">Open</button></td></tr>';
+    }).join('') + (rows.length ? '' : '<tr><td colspan="5" class="mut">Nobody owes money.</td></tr>') + '</tbody></table></div>' + (rows.length > 300 ? '<p class="mut">Showing first 300. Pick a class to narrow, or download the CSV for all.</p>' : '');
+}
+APP.act.dueCsv = function () {
+  var rows = ['name,fatherName,class,phone,owes']; dueRows().forEach(function (r) { rows.push([r.x.name, r.x.fatherName, className(r.x.classId) + ' ' + r.x.section, r.x.phone, r.b].map(csvCell).join(',')); });
+  download('unpaid-' + today() + '.csv', '﻿' + rows.join('\r\n'), 'text/csv');
+};
+APP.act.duePrint = function () {
+  var rows = dueRows(), tot = rows.reduce(function (a, r) { return a + r.b; }, 0);
+  printHtml('<div style="font-family:Arial;font-size:13px">' + letterHead(S().profile) + '<h3>Unpaid fees – ' + fmtDate(today()) + '</h3><table border="1" cellspacing="0" cellpadding="4" style="width:100%;border-collapse:collapse"><tr><th>#</th><th>Name</th><th>Father</th><th>Class</th><th>Phone</th><th>Owes</th></tr>' +
+    rows.map(function (r, i) { return '<tr><td>' + (i + 1) + '</td><td>' + esc(r.x.name) + '</td><td>' + esc(r.x.fatherName) + '</td><td>' + esc(className(r.x.classId)) + ' ' + esc(r.x.section) + '</td><td>' + esc(r.x.phone) + '</td><td align="right">' + money(r.b) + '</td></tr>'; }).join('') +
+    '<tr><td colspan="5"><b>Total</b></td><td align="right"><b>' + money(tot) + '</b></td></tr></table></div>');
+};
+function drawDaily() {
+  var el = $('duelist'); if (!el) return;
+  var list = FS().payments.filter(function (p) { return p.date === dueF.day; }), tot = list.reduce(function (a, p) { return a + p.amount; }, 0), by = {};
+  list.forEach(function (p) { by[p.method] = (by[p.method] || 0) + p.amount; });
+  el.innerHTML = '<div class="stats"><div class="stat"><span class="mut">Collected on ' + fmtDate(dueF.day) + '</span><b>' + money(tot) + '</b></div>' +
+    Object.keys(by).map(function (k) { return '<div class="stat"><span class="mut">' + esc(k) + '</span><b style="font-size:20px">' + money(by[k]) + '</b></div>'; }).join('') + '</div>' +
+    '<div class="tw"><table><thead><tr><th>Receipt</th><th>Student</th><th>Method</th><th style="text-align:right">Amount</th></tr></thead><tbody>' +
+    list.map(function (p) { var x = stById(p.stuId); return '<tr><td>#' + p.rcpt + '</td><td>' + esc(x ? x.name : '?') + '</td><td>' + esc(p.method) + '</td><td style="text-align:right">' + money(p.amount) + '</td></tr>'; }).join('') +
+    (list.length ? '' : '<tr><td colspan="4" class="mut">No payments on this day.</td></tr>') + '</tbody></table></div>';
+}
+
+// ---------- TAB: setup ----------
+FTAB.setup = function () {
+  var s = S(), c = FC();
+  return '<div class="card"><h3 style="margin-bottom:6px">Monthly tuition fee per class</h3><form data-f="saveClassFees"><div class="g3">' +
+    s.classes.map(function (k) { return '<label class="f"><span>' + esc(k.name) + '</span><input type="number" min="0" name="c_' + k.id + '" value="' + (k.fee || 0) + '"></label>'; }).join('') + '</div><button class="btn p" type="submit">Save class fees</button></form></div>' +
+    '<div class="card"><h3 style="margin-bottom:6px">Slip, bank and payment settings</h3><form data-f="saveFeeCfg">' +
+    '<div class="g3"><label class="f"><span>Due day of month</span><input type="number" min="1" max="28" name="dueDay" value="' + c.dueDay + '"></label>' +
+    '<label class="f"><span>Slips per page</span><select name="slipsPerPage"><option value="1"' + (c.slipsPerPage !== 2 ? ' selected' : '') + '>1 (big)</option><option value="2"' + (c.slipsPerPage === 2 ? ' selected' : '') + '>2 (saves paper)</option></select></label></div>' +
+    '<label class="chk"><input type="checkbox" name="bankOn"' + (c.bankOn ? ' checked' : '') + '>Print bank account on the slip (third copy becomes Bank copy)</label>' +
+    '<div class="g3"><label class="f"><span>Bank name</span><input name="bankName" value="' + esc(c.bankName) + '"></label><label class="f"><span>Account title</span><input name="accTitle" value="' + esc(c.accTitle) + '"></label><label class="f"><span>Account no / IBAN</span><input name="accNo" value="' + esc(c.accNo) + '"></label></div>' +
+    '<label class="f"><span>Note printed on slip</span><input name="bankNote" value="' + esc(c.bankNote) + '"></label>' +
+    '<label class="f"><span>Payment methods (comma separated)</span><input name="methods" value="' + esc(c.methods.join(', ')) + '"></label>' +
+    '<label class="f"><span>One-time charge names (comma separated)</span><input name="heads" value="' + esc(c.heads.join(', ')) + '"></label>' +
+    '<label class="f"><span>Discount reasons (comma separated)</span><input name="reasons" value="' + esc(c.reasons.join(', ')) + '"></label>' +
+    '<button class="btn p" type="submit">Save</button></form></div>';
+};
+APP.forms.saveClassFees = function (f) {
+  var d = formData(f); S().classes.forEach(function (k) { k.fee = Math.max(0, Math.round(Number(d['c_' + k.id]) || 0)); }); save(); toast('Class fees saved');
+};
+APP.forms.saveFeeCfg = function (f) {
+  var d = formData(f), c = FC();
+  function list(v, dflt) { var a = String(v || '').split(',').map(function (t) { return t.trim(); }).filter(Boolean); return a.length ? a : dflt; }
+  c.dueDay = Math.min(28, Math.max(1, parseInt(d.dueDay, 10) || 10)); c.slipsPerPage = d.slipsPerPage === '2' ? 2 : 1; c.bankOn = !!d.bankOn;
+  c.bankName = d.bankName; c.accTitle = d.accTitle; c.accNo = d.accNo; c.bankNote = d.bankNote;
+  c.methods = list(d.methods, ['Cash']); c.heads = list(d.heads, ['Other']); c.reasons = list(d.reasons, ['Other']);
+  save(); toast('Saved');
+};
+
+APP.homeCards.push(function () { if (!S().settings.feesOn || (APP.canSee && !APP.canSee('fees'))) return null; var t = today(), got = FS().payments.filter(function (p) { return p.date === t; }).reduce(function (a, p) { return a + p.amount; }, 0), m = ledgerMaps(), due = 0; S().students.forEach(function (x) { var b = balanceOf(x.id, m); if (b > 0) due += b; }); return { label: 'Fees collected today', value: money(got) }; });
+APP.homeCards.push(function () { if (!S().settings.feesOn || (APP.canSee && !APP.canSee('fees'))) return null; var m = ledgerMaps(), due = 0; S().students.forEach(function (x) { var b = balanceOf(x.id, m); if (b > 0) due += b; }); return { label: 'Total unpaid fees', value: money(due) }; });
+
+
+// ===== CHUNK 3: STUDENT ATTENDANCE (works offline: everything is saved on the device) =====
+// Data: S().att[date][studentId] = 'P' present | 'A' absent | 'L' leave.  S().att[date]._done = ['classId|section', ...]
+var atTab = 'mark';
+var atSel = { date: today(), cls: '', sec: '', month: thisMonth() };
+var work = null; // unsaved marks being edited
+
+function AT() { var s = S(); if (!s.att) s.att = {}; var st = s.settings; if (!st.weeklyOff) st.weeklyOff = [0]; if (!st.holidays) st.holidays = []; return s.att; }
+function offReason(date) { // returns a text if school is closed on this date, else ''
+  AT(); var st = S().settings, d = new Date(date + 'T00:00:00');
+  if (st.weeklyOff.indexOf(d.getDay()) >= 0) return 'Weekly off day';
+  for (var i = 0; i < st.holidays.length; i++) { var h = st.holidays[i]; if (date >= h.from && date <= h.to) return h.name; }
+  return '';
+}
+function atClass() { var s = S(); if (!atSel.cls || !classById(atSel.cls)) { atSel.cls = s.classes[0].id; atSel.sec = ''; } var c = classById(atSel.cls); if (c.sections.indexOf(atSel.sec) < 0) atSel.sec = c.sections[0]; return c; }
+function atStudents(date) {
+  atClass(); return S().students.filter(function (x) { return x.status === 'active' && x.classId === atSel.cls && x.section === atSel.sec && (x.admissionDate || '') <= date; })
+    .sort(function (a, b) { return a.name.localeCompare(b.name); });
+}
+
+APP.mods.push({
+  id: 'attendance', label: 'Attendance', order: 40,
+  render: function () {
+    AT();
+    var tabs = [['mark', 'Mark today'], ['register', 'Monthly register'], ['holidays', 'Holidays']];
+    return '<h1 style="margin-bottom:12px">Attendance</h1><div class="tabs">' + tabs.map(function (t) { return '<button data-a="atTab" data-t="' + t[0] + '" class="' + (t[0] === atTab ? 'on' : '') + '">' + t[1] + '</button>'; }).join('') + '</div>' + ATAB[atTab]();
+  },
+  after: function () { if (atTab === 'mark') drawMark(); }
+});
+APP.act.atTab = function (el) { atTab = el.getAttribute('data-t'); work = null; rerender(); };
+var ATAB = {};
+
+function pickers(withDate, withMonth) {
+  var s = S(), c = atClass();
+  return '<div class="card"><div class="g3">' + (withDate ? '<label class="f"><span>Date</span><input type="date" data-c="atDate" value="' + atSel.date + '"></label>' : '') + (withMonth ? '<label class="f"><span>Month</span><input type="month" data-c="atMonth" value="' + atSel.month + '"></label>' : '') +
+    '<label class="f"><span>Class</span><select data-c="atCls">' + opt(s.classes, atSel.cls, 'id', 'name') + '</select></label>' +
+    '<label class="f"><span>Section</span><select data-c="atSec">' + opt(c.sections, atSel.sec) + '</select></label></div></div>';
+}
+APP.chg.atDate = function (el) { if (el.value) { atSel.date = el.value; work = null; rerender(); } };
+APP.chg.atMonth = function (el) { if (el.value) { atSel.month = el.value; rerender(); } };
+APP.chg.atCls = function (el) { atSel.cls = el.value; atSel.sec = ''; work = null; rerender(); };
+APP.chg.atSec = function (el) { atSel.sec = el.value; work = null; rerender(); };
+
+// ---------- MARK ----------
+ATAB.mark = function () {
+  var off = offReason(atSel.date);
+  return pickers(true, false) + (off ? '<div class="note warn" style="margin-bottom:12px">School is closed on this date: <b>' + esc(off) + '</b>. You can still mark if the school opened.</div>' : '') + '<div id="mk"></div>';
+};
+function drawMark() {
+  var el = $('mk'); if (!el) return;
+  var list = atStudents(atSel.date), day = AT()[atSel.date] || {}, key = atSel.cls + '|' + atSel.sec, done = (day._done || []).indexOf(key) >= 0;
+  if (!list.length) { el.innerHTML = '<div class="card mut">No active students in this class and section.</div>'; return; }
+  if (!work) { work = {}; list.forEach(function (x) { work[x.id] = day[x.id] || (APP.attDefault && APP.attDefault(x.id, atSel.date)) || 'P'; }); }
+  var n = { P: 0, A: 0, L: 0 }; list.forEach(function (x) { n[work[x.id]]++; });
+  el.innerHTML = '<div class="row" style="margin-bottom:8px"><span class="tag ok">Present ' + n.P + '</span><span class="tag bad">Absent ' + n.A + '</span><span class="tag" style="background:#FEF3C7;color:#92400E">Leave ' + n.L + '</span>' +
+    (done ? '<span class="mut">Saved earlier. Changes need Save again.</span>' : '<span class="mut">Everyone starts as Present. Tap A or L for the others, then Save.</span>') + '<div class="sp"></div><button class="btn s" data-a="allP">All present</button><button class="btn p" data-a="saveAtt">Save attendance</button></div>' +
+    '<div class="tw"><table><tbody>' + list.map(function (x, i) {
+      return '<tr><td style="width:36px" class="mut">' + (i + 1) + '</td><td><b>' + esc(x.name) + '</b><div class="mut">' + esc(x.fatherName) + ' • ' + esc(x.admNo) + '</div></td><td><div class="mk">' +
+        ['P', 'A', 'L'].map(function (c) { return '<button type="button" class="' + c + (work[x.id] === c ? ' on' : '') + '" data-a="mkSet" data-id="' + x.id + '" data-c="' + c + '">' + c + '</button>'; }).join('') + '</div></td></tr>';
+    }).join('') + '</tbody></table></div>';
+}
+APP.act.mkSet = function (el) { var y = window.scrollY; work[el.getAttribute('data-id')] = el.getAttribute('data-c'); drawMark(); window.scrollTo(0, y); };
+APP.act.allP = function () { Object.keys(work).forEach(function (k) { work[k] = 'P'; }); drawMark(); };
+APP.act.saveAtt = function () {
+  var att = AT(), day = att[atSel.date] || (att[atSel.date] = {}), key = atSel.cls + '|' + atSel.sec, list = atStudents(atSel.date);
+  list.forEach(function (x) { day[x.id] = work[x.id] || 'P'; });
+  day._done = day._done || []; if (day._done.indexOf(key) < 0) day._done.push(key);
+  save(); var absent = list.filter(function (x) { return work[x.id] === 'A'; }); work = null; drawMark(); toast('Attendance saved');
+  if (absent.length) modal(absent.length + ' absent today – message guardians?', '<p class="mut">Each button opens WhatsApp with the message ready. You press send.</p>' +
+    '<div class="tw"><table><tbody>' + absent.map(function (x) {
+      var wa = waLink(x.whatsapp || x.phone, 'Assalam o Alaikum. ' + x.name + ' is absent from school today (' + fmtDate(atSel.date) + '). Please inform the school. - ' + S().profile.name);
+      return '<tr><td><b>' + esc(x.name) + '</b><div class="mut">' + esc(x.fatherName) + '</div></td><td>' + (wa ? '<a class="btn s" target="_blank" rel="noopener" href="' + wa + '">WhatsApp</a>' : '<span class="mut">no phone</span>') + '</td></tr>';
+    }).join('') + '</tbody></table></div>');
+};
+
+// ---------- REGISTER ----------
+ATAB.register = function () {
+  var list = (atStudents(atSel.month + '-31')), y = +atSel.month.slice(0, 4), m = +atSel.month.slice(5, 7), days = new Date(y, m, 0).getDate(), att = AT();
+  var head = '', d; for (d = 1; d <= days; d++) head += '<th>' + d + '</th>';
+  var rows = list.map(function (x, i) {
+    var P = 0, A = 0, L = 0, cells = '';
+    for (d = 1; d <= days; d++) {
+      var ds = atSel.month + '-' + ('0' + d).slice(-2), c = (att[ds] || {})[x.id];
+      if (c === 'P') P++; else if (c === 'A') A++; else if (c === 'L') L++;
+      cells += '<td class="' + (c || (offReason(ds) ? 'H' : '')) + '">' + (c ? (c === 'P' ? '·' : c) : (offReason(ds) ? '' : '')) + '</td>';
+    }
+    var tot = P + A + L;
+    return '<tr><td class="nm">' + (i + 1) + '. ' + esc(x.name) + '</td>' + cells + '<td><b>' + P + '</b></td><td>' + A + '</td><td>' + L + '</td><td><b>' + (tot ? Math.round(P * 100 / tot) + '%' : '–') + '</b></td></tr>';
+  }).join('');
+  return pickers(false, true) + '<div class="row" style="margin-bottom:8px"><span class="mut">· = present, A = absent, L = leave, grey = closed</span><div class="sp"></div><button class="btn s" data-a="printReg">Print register</button><button class="btn s" data-a="regCsv">Download CSV</button></div>' +
+    (list.length ? '<div class="tw" id="regbox"><table class="reg"><thead><tr><th class="nm">Student</th>' + head + '<th>P</th><th>A</th><th>L</th><th>%</th></tr></thead><tbody>' + rows + '</tbody></table></div>' : '<div class="card mut">No students in this class and section.</div>');
+};
+APP.act.printReg = function () {
+  var c = atClass(); printHtml('<div style="font-family:Arial">' + letterHead(S().profile) + '<h3>Attendance register – ' + esc(c.name) + ' ' + esc(atSel.sec) + ' – ' + monthLabel(atSel.month) + '</h3>' + ($('regbox') ? $('regbox').innerHTML : '') + '<div class="sig" style="display:flex;justify-content:space-between;margin-top:40px"><span>Class teacher</span><span>Principal</span></div></div>', true);
+};
+APP.act.regCsv = function () {
+  var list = atStudents(atSel.month + '-31'), y = +atSel.month.slice(0, 4), m = +atSel.month.slice(5, 7), days = new Date(y, m, 0).getDate(), att = AT(), rows = [], d, h = ['name'];
+  for (d = 1; d <= days; d++) h.push(d); h.push('P', 'A', 'L'); rows.push(h.join(','));
+  list.forEach(function (x) { var P = 0, A = 0, L = 0, r = [csvCell(x.name)]; for (d = 1; d <= days; d++) { var c = (att[atSel.month + '-' + ('0' + d).slice(-2)] || {})[x.id] || ''; if (c === 'P') P++; if (c === 'A') A++; if (c === 'L') L++; r.push(c); } r.push(P, A, L); rows.push(r.join(',')); });
+  download('attendance-' + atSel.month + '.csv', '﻿' + rows.join('\r\n'), 'text/csv');
+};
+
+// ---------- HOLIDAYS ----------
+var DAYN = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+ATAB.holidays = function () {
+  AT(); var st = S().settings, list = st.holidays.slice().sort(function (a, b) { return a.from.localeCompare(b.from); });
+  return '<div class="card"><h3 style="margin-bottom:6px">Weekly off days</h3><form data-f="saveWeekly"><div class="row">' + DAYN.map(function (n, i) { return '<label class="chk"><input type="checkbox" name="d' + i + '"' + (st.weeklyOff.indexOf(i) >= 0 ? ' checked' : '') + '>' + n + '</label>'; }).join('') + '</div><button class="btn p" type="submit" style="margin-top:8px">Save</button></form></div>' +
+    '<div class="card"><h3 style="margin-bottom:6px">Add holiday (Eid, summer vacation, …)</h3><form data-f="addHoliday"><div class="g3"><label class="f"><span>Name</span><input name="name" required placeholder="Eid ul Fitr"></label><label class="f"><span>From</span><input type="date" name="from" required></label><label class="f"><span>To (same day if one day)</span><input type="date" name="to"></label></div><button class="btn p" type="submit">Add holiday</button></form></div>' +
+    '<div class="tw"><table><thead><tr><th>Holiday</th><th>From</th><th>To</th><th></th></tr></thead><tbody>' + (list.length ? list.map(function (h) { return '<tr><td>' + esc(h.name) + '</td><td>' + fmtDate(h.from) + '</td><td>' + fmtDate(h.to) + '</td><td><button class="btn s d" data-a="delHoliday" data-id="' + h.id + '">Remove</button></td></tr>'; }).join('') : '<tr><td colspan="4" class="mut">No holidays added yet. Eid dates change every year, so the school adds them.</td></tr>') + '</tbody></table></div>';
+};
+APP.forms.saveWeekly = function (f) { var d = formData(f), a = []; DAYN.forEach(function (n, i) { if (d['d' + i]) a.push(i); }); S().settings.weeklyOff = a; save(); toast('Saved'); };
+APP.forms.addHoliday = function (f) {
+  var d = formData(f), to = d.to || d.from; if (to < d.from) return toast('The end date is before the start date.');
+  AT(); S().settings.holidays.push({ id: uid(), name: d.name, from: d.from, to: to }); save(); rerender(); toast('Holiday added');
+};
+APP.act.delHoliday = function (el) { S().settings.holidays = S().settings.holidays.filter(function (h) { return h.id !== el.getAttribute('data-id'); }); save(); rerender(); };
+
+// ---------- attendance % in the student profile ----------
+(APP.profileRows = APP.profileRows || []).push(function (x) {
+  var att = AT(), P = 0, A = 0, L = 0;
+  Object.keys(att).forEach(function (d) { var c = att[d][x.id]; if (c === 'P') P++; else if (c === 'A') A++; else if (c === 'L') L++; });
+  var t = P + A + L; return t ? '<tr><td class="mut">Attendance</td><td>' + Math.round(P * 100 / t) + '% (' + P + ' present, ' + A + ' absent, ' + L + ' leave)</td></tr>' : '';
+});
+
+APP.homeCards.push(function () { var d = (S().att || {})[today()]; if (!d) return { label: 'Absent today', value: 'not marked' }; var n = 0; Object.keys(d).forEach(function (k) { if (d[k] === 'A') n++; }); return { label: 'Absent today', value: n }; });
+
+
+// ===== CHUNK 4: STAFF, STAFF ATTENDANCE, SALARY & PAYSLIPS =====
+var stTab = 'list';
+var pay = { month: thisMonth() };
+var sAtt = { date: today() }, sWork = null;
+
+function SO() { // staff settings with defaults
+  var s = S(); if (!s.staff) s.staff = []; if (!s.payroll) s.payroll = []; if (!s.satt) s.satt = {};
+  if (!s.settings.staffCfg) s.settings.staffCfg = { types: ['Teaching', 'Admin', 'Support'], allowOn: false, dedOn: false, approvalOn: false, leaveOn: true, leavesPerMonth: 2, autoDed: false, methods: ['Cash', 'Bank transfer', 'Easypaisa / JazzCash'] };
+  return s.settings.staffCfg;
+}
+function staffById(id) { return S().staff.filter(function (x) { return x.id === id; })[0]; }
+
+APP.mods.push({
+  id: 'staff', label: 'Staff & Salary', order: 50,
+  render: function () {
+    SO(); var tabs = [['list', 'Staff'], ['att', 'Staff attendance'], ['payroll', 'Monthly salary'], ['setup', 'Salary settings']];
+    return '<h1 style="margin-bottom:12px">Staff &amp; Salary</h1><div class="tabs">' + tabs.map(function (t) { return '<button data-a="stTab" data-t="' + t[0] + '" class="' + (t[0] === stTab ? 'on' : '') + '">' + t[1] + '</button>'; }).join('') + '</div>' + STAB[stTab]();
+  },
+  after: function () { if (stTab === 'att') drawSAtt(); }
+});
+APP.act.stTab = function (el) { stTab = el.getAttribute('data-t'); sWork = null; rerender(); };
+var STAB = {};
+
+// ---------- staff list ----------
+var staffF = { q: '', status: 'active' };
+STAB.list = function () {
+  var c = SO(), list = S().staff.filter(function (x) { return (staffF.status === 'all' || x.status === staffF.status) && (x.name + ' ' + x.designation + ' ' + x.type).toLowerCase().indexOf(staffF.q.toLowerCase()) >= 0; });
+  var tot = list.filter(function (x) { return x.status === 'active'; }).reduce(function (a, x) { return a + x.salary; }, 0);
+  return '<div class="row" style="margin-bottom:10px"><input data-i="sq" placeholder="Search staff" style="max-width:260px" value="' + esc(staffF.q) + '"><select data-c="sstat" style="max-width:150px"><option value="active"' + (staffF.status === 'active' ? ' selected' : '') + '>Active</option><option value="left"' + (staffF.status === 'left' ? ' selected' : '') + '>Left</option><option value="all"' + (staffF.status === 'all' ? ' selected' : '') + '>All</option></select><div class="sp"></div><span class="mut">Monthly salary total: <b>' + money(tot) + '</b></span><button class="btn p" data-a="addStaff">+ Add staff</button></div>' +
+    '<div class="tw"><table><thead><tr><th>Name</th><th>Type</th><th>Designation</th><th>Phone</th><th style="text-align:right">Salary</th><th></th></tr></thead><tbody>' +
+    (list.length ? list.map(function (x) { return '<tr class="click" data-a="editStaff" data-id="' + x.id + '"><td><b>' + esc(x.name) + '</b>' + (x.status === 'left' ? ' <span class="tag bad">Left</span>' : '') + '</td><td>' + esc(x.type) + '</td><td>' + esc(x.designation) + '</td><td>' + esc(x.phone) + '</td><td style="text-align:right">' + money(x.salary) + '</td><td></td></tr>'; }).join('') : '<tr><td colspan="6" class="mut">No staff yet. Click "+ Add staff".</td></tr>') + '</tbody></table></div>';
+};
+APP.inp.sq = function (el) { staffF.q = el.value; var y = el.selectionStart; rerender(); var n = document.querySelector('[data-i=sq]'); n.focus(); n.setSelectionRange(y, y); };
+APP.chg.sstat = function (el) { staffF.status = el.value; rerender(); };
+
+function staffForm(x) {
+  var c = SO(); x = x || { type: c.types[0], joinDate: today(), salary: '', status: 'active' };
+  return '<form data-f="saveStaff"><input type="hidden" name="id" value="' + esc(x.id || '') + '">' +
+    '<div class="g2"><label class="f"><span>Name *</span><input name="name" value="' + esc(x.name) + '" required></label><label class="f"><span>Father name</span><input name="fatherName" value="' + esc(x.fatherName) + '"></label></div>' +
+    '<div class="g3"><label class="f"><span>Type</span><select name="type">' + opt(c.types, x.type) + '</select></label><label class="f"><span>Designation</span><input name="designation" value="' + esc(x.designation) + '" placeholder="e.g. Math teacher"></label><label class="f"><span>Monthly salary (Rs) *</span><input type="number" min="0" name="salary" value="' + esc(x.salary) + '" required></label></div>' +
+    '<div class="g3"><label class="f"><span>Phone</span><input name="phone" value="' + esc(x.phone) + '"></label><label class="f"><span>CNIC</span><input name="cnic" value="' + esc(x.cnic) + '"></label><label class="f"><span>Joining date</span><input type="date" name="joinDate" value="' + esc(x.joinDate) + '"></label></div>' +
+    '<label class="f"><span>Qualification / notes</span><input name="notes" value="' + esc(x.notes) + '"></label>' +
+    '<div class="row"><button class="btn p" type="submit">Save</button>' + (x.id ? (x.status === 'active' ? '<button class="btn" type="button" data-a="staffLeft" data-id="' + x.id + '">Mark as left</button>' : '<button class="btn" type="button" data-a="staffBack" data-id="' + x.id + '">Mark active again</button>') + '<button class="btn d" type="button" data-a="delStaff" data-id="' + x.id + '">Delete</button>' : '') + '<button class="btn" type="button" data-a="close">Cancel</button></div></form>';
+}
+APP.act.addStaff = function () { modal('Add staff', staffForm(null), true); };
+APP.act.editStaff = function (el) { modal('Edit staff', staffForm(staffById(el.getAttribute('data-id'))), true); };
+APP.forms.saveStaff = function (f) {
+  var d = formData(f), x = d.id ? staffById(d.id) : null; if (!x) { x = { id: uid(), status: 'active' }; S().staff.push(x); }
+  ['name', 'fatherName', 'type', 'designation', 'phone', 'cnic', 'joinDate', 'notes'].forEach(function (k) { x[k] = d[k] || ''; }); x.salary = Math.max(0, Math.round(Number(d.salary) || 0));
+  save(); closeModal(); rerender(); toast('Saved');
+};
+APP.act.staffLeft = function (el) { var x = staffById(el.getAttribute('data-id')); x.status = 'left'; x.leftDate = today(); save(); closeModal(); rerender(); };
+APP.act.staffBack = function (el) { var x = staffById(el.getAttribute('data-id')); x.status = 'active'; save(); closeModal(); rerender(); };
+APP.act.delStaff = function (el) {
+  var x = staffById(el.getAttribute('data-id')); if (S().payroll.some(function (p) { return p.staffId === x.id; })) return toast('This person has salary records. Use "Mark as left" instead.');
+  if (!ask('Delete ' + x.name + '?')) return; S().staff = S().staff.filter(function (o) { return o !== x; }); save(); closeModal(); rerender();
+};
+
+// ---------- staff attendance ----------
+STAB.att = function () {
+  SO(); var off = offReason(sAtt.date);
+  return '<div class="card"><label class="f" style="max-width:240px"><span>Date</span><input type="date" data-c="sDate" value="' + sAtt.date + '"></label></div>' + (off ? '<div class="note warn" style="margin-bottom:12px">School is closed on this date: <b>' + esc(off) + '</b>.</div>' : '') + '<div id="sat"></div>';
+};
+APP.chg.sDate = function (el) { if (el.value) { sAtt.date = el.value; sWork = null; rerender(); } };
+function drawSAtt() {
+  var el = $('sat'); if (!el) return; var c = SO(), list = S().staff.filter(function (x) { return x.status === 'active' && (x.joinDate || '') <= sAtt.date; }), day = S().satt[sAtt.date] || {};
+  if (!list.length) { el.innerHTML = '<div class="card mut">No active staff.</div>'; return; }
+  if (!sWork) { sWork = {}; list.forEach(function (x) { sWork[x.id] = day[x.id] || (APP.staffAttDefault && APP.staffAttDefault(x.id, sAtt.date)) || 'P'; }); }
+  var n = { P: 0, A: 0, L: 0 }; list.forEach(function (x) { n[sWork[x.id]]++; });
+  el.innerHTML = '<div class="row" style="margin-bottom:8px"><span class="tag ok">Present ' + n.P + '</span><span class="tag bad">Absent ' + n.A + '</span><span class="tag" style="background:#FEF3C7;color:#92400E">Leave ' + n.L + '</span><div class="sp"></div><button class="btn s" data-a="sAllP">All present</button><button class="btn p" data-a="sSave">Save</button></div><div class="tw"><table><tbody>' +
+    list.map(function (x) { return '<tr><td><b>' + esc(x.name) + '</b><div class="mut">' + esc(x.designation || x.type) + '</div></td><td><div class="mk">' + ['P', 'A', 'L'].map(function (k) { return '<button type="button" class="' + k + (sWork[x.id] === k ? ' on' : '') + '" data-a="sSet" data-id="' + x.id + '" data-k="' + k + '">' + k + '</button>'; }).join('') + '</div></td></tr>'; }).join('') + '</tbody></table></div>';
+}
+APP.act.sSet = function (el) { var y = window.scrollY; sWork[el.getAttribute('data-id')] = el.getAttribute('data-k'); drawSAtt(); window.scrollTo(0, y); };
+APP.act.sAllP = function () { Object.keys(sWork).forEach(function (k) { sWork[k] = 'P'; }); drawSAtt(); };
+APP.act.sSave = function () { var day = S().satt[sAtt.date] = {}; Object.keys(sWork).forEach(function (k) { day[k] = sWork[k]; }); save(); sWork = null; drawSAtt(); toast('Staff attendance saved'); };
+function staffMonthAtt(id, M) { var a = 0, l = 0, p = 0; Object.keys(S().satt).forEach(function (d) { if (d.slice(0, 7) === M) { var c = S().satt[d][id]; if (c === 'A') a++; else if (c === 'L') l++; else if (c === 'P') p++; } }); return { a: a, l: l, p: p }; }
+
+// ---------- payroll ----------
+function calcRow(r) {
+  var al = (r.allow || []).reduce(function (a, o) { return a + o.amount; }, 0), de = (r.ded || []).reduce(function (a, o) { return a + o.amount; }, 0);
+  r.gross = r.base + al; r.net = Math.max(0, r.gross - de - (r.autoDed || 0)); return r;
+}
+function autoDedFor(x, M) {
+  var c = SO(); if (!c.autoDed) return { amt: 0, days: 0 }; var a = staffMonthAtt(x.id, M), extra = Math.max(0, a.l - (c.leaveOn ? c.leavesPerMonth : 0)), days = a.a + extra;
+  return { amt: Math.round(x.salary / 30 * days), days: days };
+}
+function payFor(M) { return S().payroll.filter(function (r) { return r.month === M; }); }
+STAB.payroll = function () {
+  var c = SO(), rows = payFor(pay.month).map(calcRow), tot = rows.reduce(function (a, r) { return a + r.net; }, 0), paid = rows.filter(function (r) { return r.status === 'paid'; }).reduce(function (a, r) { return a + r.net; }, 0);
+  return '<div class="card"><div class="row"><label class="f" style="margin:0"><span>Month</span><input type="month" data-c="payMonth" value="' + pay.month + '"></label><div class="sp"></div><button class="btn p" data-a="genPay">Make salary for ' + monthLabel(pay.month) + '</button></div>' +
+    '<p class="mut" style="margin:8px 0 0">Uses each person\'s monthly salary. Running it again only adds new staff. Edit any row for allowances, deductions or a fix.</p></div>' +
+    (rows.length ? '<div class="stats"><div class="stat"><span class="mut">Total payable</span><b>' + money(tot) + '</b></div><div class="stat"><span class="mut">Already paid</span><b>' + money(paid) + '</b></div><div class="stat"><span class="mut">Remaining</span><b>' + money(tot - paid) + '</b></div></div>' +
+      '<div class="row" style="margin-bottom:8px">' + (c.approvalOn ? '<button class="btn s" data-a="payAll" data-to="approved">Approve all</button>' : '') + '<button class="btn s" data-a="payAll" data-to="paid">Mark all as paid</button><div class="sp"></div><button class="btn s" data-a="salarySheet">Print salary sheet</button><button class="btn s" data-a="allSlips">Print all payslips</button><button class="btn s" data-a="salCsv">CSV</button></div>' +
+      '<div class="tw"><table><thead><tr><th>Name</th><th style="text-align:right">Basic</th><th style="text-align:right">+ Allow</th><th style="text-align:right">– Deduct</th><th style="text-align:right">Net</th><th>Status</th><th></th></tr></thead><tbody>' +
+      rows.map(function (r) {
+        var x = staffById(r.staffId), al = (r.allow || []).reduce(function (a, o) { return a + o.amount; }, 0), de = (r.ded || []).reduce(function (a, o) { return a + o.amount; }, 0) + (r.autoDed || 0);
+        return '<tr><td><b>' + esc(x ? x.name : '?') + '</b><div class="mut">' + esc(x ? x.designation || x.type : '') + '</div></td><td style="text-align:right">' + money(r.base) + '</td><td style="text-align:right">' + money(al) + '</td><td style="text-align:right">' + money(de) + '</td><td style="text-align:right"><b>' + money(r.net) + '</b></td><td><span class="tag ' + (r.status === 'paid' ? 'ok' : r.status === 'approved' ? '' : 'bad') + '">' + r.status + '</span></td><td><button class="btn s" data-a="editPay" data-id="' + r.id + '">Open</button></td></tr>';
+      }).join('') + '</tbody></table></div>' : '<div class="card mut">No salary made for this month yet.</div>');
+};
+APP.chg.payMonth = function (el) { if (el.value) { pay.month = el.value; rerender(); } };
+APP.act.genPay = function () {
+  var M = pay.month, have = {}; payFor(M).forEach(function (r) { have[r.staffId] = 1; }); var n = 0;
+  S().staff.forEach(function (x) {
+    if (x.status !== 'active' || have[x.id] || (x.joinDate || '').slice(0, 7) > M) return;
+    var ad = autoDedFor(x, M);
+    S().payroll.push({ id: uid(), staffId: x.id, month: M, base: x.salary, allow: [], ded: [], autoDed: ad.amt, autoDays: ad.days, status: 'draft', paidDate: '', method: '' }); n++;
+  });
+  save(); rerender(); toast(n + ' salary rows made');
+};
+function payRowById(id) { return S().payroll.filter(function (r) { return r.id === id; })[0]; }
+function openPay(id) {
+  var r = calcRow(payRowById(id)), x = staffById(r.staffId), c = SO(), locked = r.status === 'paid';
+  function lines(arr, kind) { return (arr || []).map(function (o, i) { return '<tr><td>' + esc(o.title) + '</td><td style="text-align:right">' + money(o.amount) + '</td><td>' + (locked ? '' : '<button class="btn s d" data-a="rmLine" data-id="' + r.id + '" data-k="' + kind + '" data-i="' + i + '">×</button>') + '</td></tr>'; }).join(''); }
+  var h = '<div class="tw"><table><tbody><tr><td>Basic salary</td><td style="text-align:right">' + money(r.base) + '</td><td></td></tr>' + lines(r.allow, 'allow') + lines(r.ded, 'ded').replace(/<td style="text-align:right">/g, '<td style="text-align:right;color:var(--bad)">–') +
+    (r.autoDed ? '<tr><td>Absence deduction (' + r.autoDays + ' day' + (r.autoDays === 1 ? '' : 's') + ')</td><td style="text-align:right;color:var(--bad)">–' + money(r.autoDed) + '</td><td></td></tr>' : '') +
+    '<tr><td><b>Net salary</b></td><td style="text-align:right"><b>' + money(r.net) + '</b></td><td></td></tr></tbody></table></div>';
+  if (!locked) {
+    h += '<form data-f="addLine" class="row" style="margin-top:12px"><input type="hidden" name="id" value="' + r.id + '"><select name="k" style="max-width:150px">' + (c.allowOn ? '<option value="allow">Allowance (+)</option>' : '') + (c.dedOn ? '<option value="ded">Deduction (–)</option>' : '') + '<option value="base">Change basic</option></select><input name="title" placeholder="Name (e.g. Bonus)" style="max-width:200px"><input type="number" min="0" name="amount" placeholder="Rs" style="max-width:120px" required><button class="btn" type="submit">Add</button></form>';
+    if (c.autoDed) h += '<div style="margin-top:8px"><button class="btn s" data-a="recalcAbs" data-id="' + r.id + '">Recalculate absence deduction</button></div>';
+  }
+  h += '<div class="row" style="margin-top:14px">' + (r.status === 'draft' && c.approvalOn ? '<button class="btn p" data-a="setStatus" data-id="' + r.id + '" data-to="approved">Approve</button>' : '') +
+    (r.status !== 'paid' && (r.status === 'approved' || !c.approvalOn) ? '<button class="btn p" data-a="payOne" data-id="' + r.id + '">Mark as paid</button>' : '') +
+    (r.status === 'paid' ? '<span class="mut">Paid ' + fmtDate(r.paidDate) + ' (' + esc(r.method) + ')</span><button class="btn s" data-a="setStatus" data-id="' + r.id + '" data-to="draft">Undo paid</button>' : '') +
+    '<button class="btn" data-a="slip" data-id="' + r.id + '">Print payslip</button>' + (waLink(x && x.phone, 'x') ? '<a class="btn" target="_blank" rel="noopener" href="' + waLink(x.phone, 'Assalam o Alaikum ' + x.name + '. Your salary for ' + monthLabel(r.month) + ' is ' + money(r.net) + '. - ' + S().profile.name) + '">WhatsApp</a>' : '') + '</div>';
+  modal(x.name + ' – ' + monthLabel(r.month), h);
+}
+APP.act.editPay = function (el) { openPay(el.getAttribute('data-id')); };
+APP.forms.addLine = function (f) {
+  var d = formData(f), r = payRowById(d.id), amt = Math.round(Number(d.amount)); if (!(amt >= 0)) return;
+  if (d.k === 'base') r.base = amt; else (r[d.k] = r[d.k] || []).push({ title: d.title || (d.k === 'allow' ? 'Allowance' : 'Deduction'), amount: amt });
+  save(); openPay(d.id); rerender_keep();
+};
+function rerender_keep() { /* refresh table behind the modal */ var t = $('view'); var m = mod('staff'); t.innerHTML = m.render(); if (m.after) m.after(); }
+APP.act.rmLine = function (el) { var r = payRowById(el.getAttribute('data-id')); r[el.getAttribute('data-k')].splice(+el.getAttribute('data-i'), 1); save(); openPay(r.id); rerender_keep(); };
+APP.act.recalcAbs = function (el) { var r = payRowById(el.getAttribute('data-id')), ad = autoDedFor(staffById(r.staffId), r.month); r.autoDed = ad.amt; r.autoDays = ad.days; save(); openPay(r.id); rerender_keep(); };
+APP.act.setStatus = function (el) { var r = payRowById(el.getAttribute('data-id')); r.status = el.getAttribute('data-to'); if (r.status !== 'paid') { r.paidDate = ''; r.method = ''; } save(); openPay(r.id); rerender_keep(); };
+APP.act.payOne = function (el) {
+  var r = payRowById(el.getAttribute('data-id')), c = SO(); r.status = 'paid'; r.paidDate = today(); r.method = c.methods[0]; save(); openPay(r.id); rerender_keep(); toast('Marked as paid');
+};
+APP.act.payAll = function (el) {
+  var to = el.getAttribute('data-to'), c = SO(), n = 0;
+  payFor(pay.month).forEach(function (r) {
+    if (to === 'approved' && r.status === 'draft') { r.status = 'approved'; n++; }
+    if (to === 'paid' && r.status !== 'paid' && (!c.approvalOn || r.status === 'approved')) { r.status = 'paid'; r.paidDate = today(); r.method = c.methods[0]; n++; }
+  });
+  save(); rerender(); toast(n + ' updated' + (to === 'paid' && c.approvalOn ? ' (only approved rows can be paid)' : ''));
+};
+
+// ---------- printing ----------
+function slipHtml(r) {
+  calcRow(r); var x = staffById(r.staffId), pr = S().profile, c = SO();
+  var rows = [['Basic salary', r.base]].concat((r.allow || []).map(function (o) { return [o.title, o.amount]; }));
+  var drows = (r.ded || []).map(function (o) { return [o.title, o.amount]; }); if (r.autoDed) drows.push(['Absence (' + r.autoDays + ' day/s)', r.autoDed]);
+  return '<div class="slip" style="margin:0 auto 10mm;max-width:520px;font-size:13px">' + APP.slipHead(pr) + '<div class="cp">SALARY SLIP – ' + monthLabel(r.month).toUpperCase() + '</div>' +
+    '<table><tbody><tr><td>Name</td><td><b>' + esc(x.name) + '</b></td><td>Type</td><td>' + esc(x.type) + '</td></tr><tr><td>Designation</td><td>' + esc(x.designation) + '</td><td>Joined</td><td>' + fmtDate(x.joinDate) + '</td></tr></tbody></table>' +
+    '<table><thead><tr><th>Earnings</th><th style="text-align:right">Rs</th></tr></thead><tbody>' + rows.map(function (o) { return '<tr><td>' + esc(o[0]) + '</td><td style="text-align:right">' + Math.round(o[1]).toLocaleString('en-US') + '</td></tr>'; }).join('') + '<tr><td><b>Gross</b></td><td style="text-align:right"><b>' + Math.round(r.gross).toLocaleString('en-US') + '</b></td></tr></tbody></table>' +
+    (drows.length ? '<table><thead><tr><th>Deductions</th><th style="text-align:right">Rs</th></tr></thead><tbody>' + drows.map(function (o) { return '<tr><td>' + esc(o[0]) + '</td><td style="text-align:right">' + Math.round(o[1]).toLocaleString('en-US') + '</td></tr>'; }).join('') + '</tbody></table>' : '') +
+    '<table><tbody><tr><td><b>NET SALARY</b></td><td style="text-align:right"><b>' + money(r.net) + '</b></td></tr></tbody></table>' +
+    '<div class="sg"><span>Accountant</span><span>Principal</span><span>Received by</span></div></div>';
+}
+APP.act.slip = function (el) { printHtml(slipHtml(payRowById(el.getAttribute('data-id')))); };
+APP.act.allSlips = function () {
+  var rows = payFor(pay.month); if (!rows.length) return; var h = '';
+  rows.forEach(function (r, i) { h += slipHtml(r); if (i % 2 === 1) h += '<div style="page-break-after:always"></div>'; }); printHtml(h);
+};
+APP.act.salarySheet = function () {
+  var rows = payFor(pay.month).map(calcRow), tot = 0;
+  printHtml('<div style="font-family:Arial;font-size:13px">' + letterHead(S().profile) + '<h3>Salary sheet – ' + monthLabel(pay.month) + '</h3><table border="1" cellspacing="0" cellpadding="5" style="width:100%;border-collapse:collapse"><tr><th>#</th><th>Name</th><th>Designation</th><th>Gross</th><th>Deductions</th><th>Net</th><th>Signature</th></tr>' +
+    rows.map(function (r, i) { var x = staffById(r.staffId); tot += r.net; return '<tr><td>' + (i + 1) + '</td><td>' + esc(x.name) + '</td><td>' + esc(x.designation || x.type) + '</td><td align="right">' + Math.round(r.gross).toLocaleString('en-US') + '</td><td align="right">' + Math.round(r.gross - r.net).toLocaleString('en-US') + '</td><td align="right"><b>' + Math.round(r.net).toLocaleString('en-US') + '</b></td><td style="width:110px"></td></tr>'; }).join('') +
+    '<tr><td colspan="5"><b>Total</b></td><td align="right"><b>' + Math.round(tot).toLocaleString('en-US') + '</b></td><td></td></tr></table></div>', true);
+};
+APP.act.salCsv = function () {
+  var rows = ['name,type,basic,gross,net,status']; payFor(pay.month).map(calcRow).forEach(function (r) { var x = staffById(r.staffId); rows.push([x.name, x.type, r.base, r.gross, r.net, r.status].map(csvCell).join(',')); });
+  download('salary-' + pay.month + '.csv', '﻿' + rows.join('\r\n'), 'text/csv');
+};
+
+// ---------- settings ----------
+STAB.setup = function () {
+  var c = SO();
+  function chk(n, t, v) { return '<label class="chk"><input type="checkbox" name="' + n + '"' + (v ? ' checked' : '') + '>' + t + '</label>'; }
+  return '<div class="card"><form data-f="saveStaffCfg"><label class="f"><span>Staff types (comma separated)</span><input name="types" value="' + esc(c.types.join(', ')) + '"></label>' +
+    chk('allowOn', 'Allowances (extra money added to salary)', c.allowOn) + chk('dedOn', 'Deductions (money taken from salary)', c.dedOn) +
+    chk('approvalOn', 'Principal approval before paying', c.approvalOn) + chk('leaveOn', 'Paid leave allowed each month', c.leaveOn) +
+    '<label class="f" style="max-width:260px;margin-top:8px"><span>Paid leaves per month</span><input type="number" min="0" name="leavesPerMonth" value="' + c.leavesPerMonth + '"></label>' +
+    chk('autoDed', 'Cut salary automatically for absences (and leaves beyond the allowed number). One day = salary ÷ 30.', c.autoDed) +
+    '<label class="f" style="margin-top:8px"><span>Payment methods (comma separated)</span><input name="methods" value="' + esc(c.methods.join(', ')) + '"></label><button class="btn p" type="submit">Save</button></form></div>' +
+    '<div class="note">Every option is optional. Leave them off for a simple fixed salary.</div>';
+};
+APP.forms.saveStaffCfg = function (f) {
+  var d = formData(f), c = SO(); function list(v, df) { var a = String(v || '').split(',').map(function (t) { return t.trim(); }).filter(Boolean); return a.length ? a : df; }
+  c.types = list(d.types, ['Staff']); c.methods = list(d.methods, ['Cash']); ['allowOn', 'dedOn', 'approvalOn', 'leaveOn', 'autoDed'].forEach(function (k) { c[k] = !!d[k]; }); c.leavesPerMonth = Math.max(0, parseInt(d.leavesPerMonth, 10) || 0);
+  save(); toast('Saved');
+};
+
+APP.homeCards.push(function () { if (APP.canSee && !APP.canSee('staff')) return null; var n = (S().staff || []).filter(function (x) { return x.status === 'active'; }).length; return n ? { label: 'Active staff', value: n } : null; });
+
+
+// ===== CHUNK 5: EXAMS, MARKS, RESULTS, REPORT CARDS =====
+var exTab = 'exams';
+var exSel = { exam: '', cls: '', sec: '', subj: '' };
+
+var DEF_SUBJECTS = ['English', 'Urdu', 'Mathematics', 'Science', 'Islamiyat', 'Social Studies', 'Computer'];
+function EX() {
+  var s = S(); if (!s.exams) s.exams = []; if (!s.marks) s.marks = {};
+  var st = s.settings; if (!st.exam) st.exam = { passPct: 33, grades: [{ min: 90, g: 'A+' }, { min: 80, g: 'A' }, { min: 70, g: 'B' }, { min: 60, g: 'C' }, { min: 50, g: 'D' }, { min: 40, g: 'E' }, { min: 0, g: 'F' }] };
+  s.classes.forEach(function (c) { if (!c.subjects) c.subjects = DEF_SUBJECTS.map(function (n) { return { name: n, total: 100 }; }); });
+  return st.exam;
+}
+function gradeOf(pct) { var g = EX().grades.slice().sort(function (a, b) { return b.min - a.min; }); for (var i = 0; i < g.length; i++) if (pct >= g[i].min) return g[i].g; return g[g.length - 1].g; }
+var REMARK = { 'A+': 'Outstanding performance.', 'A': 'Excellent work. Keep it up.', 'B': 'Very good performance.', 'C': 'Good. Can do better with more effort.', 'D': 'Satisfactory. Needs more practice.', 'E': 'Below average. Needs regular study.', 'F': 'Needs serious attention and extra support.' };
+function examById(id) { return S().exams.filter(function (e) { return e.id === id; })[0]; }
+function subjTotal(ex, s) { return Math.round(s.total * (ex.scale || 100) / 100); }
+
+APP.mods.push({
+  id: 'exams', label: 'Exams', order: 60,
+  render: function () {
+    EX(); var tabs = [['exams', 'Exams'], ['marks', 'Enter marks'], ['results', 'Results & report cards'], ['setup', 'Subjects & grades']];
+    return '<h1 style="margin-bottom:12px">Exams</h1><div class="tabs">' + tabs.map(function (t) { return '<button data-a="exTab" data-t="' + t[0] + '" class="' + (t[0] === exTab ? 'on' : '') + '">' + t[1] + '</button>'; }).join('') + '</div>' + ETAB[exTab]();
+  }
+});
+APP.act.exTab = function (el) { exTab = el.getAttribute('data-t'); rerender(); };
+var ETAB = {};
+
+// ---------- exams list ----------
+ETAB.exams = function () {
+  var list = S().exams;
+  return '<div class="card"><h3 style="margin-bottom:6px">Create exam</h3><form data-f="addExam"><div class="g3"><label class="f"><span>Name</span><input name="name" required placeholder="First Term / Mid Term / Final"></label>' +
+    '<label class="f"><span>Date (optional)</span><input type="date" name="date"></label><label class="f"><span>Paper marks as % of subject total</span><input type="number" min="10" max="100" name="scale" value="100"></label></div>' +
+    '<button class="btn p" type="submit">Create exam</button></form></div><div class="tw"><table><thead><tr><th>Exam</th><th>Date</th><th>Marks scale</th><th></th></tr></thead><tbody>' +
+    (list.length ? list.map(function (e) { return '<tr><td><b>' + esc(e.name) + '</b></td><td>' + fmtDate(e.date) + '</td><td>' + (e.scale || 100) + '%</td><td><button class="btn s d" data-a="delExam" data-id="' + e.id + '">Delete</button></td></tr>'; }).join('') : '<tr><td colspan="4" class="mut">No exams yet.</td></tr>') + '</tbody></table></div>' +
+    '<p class="mut">Scale 100% means each subject uses its full total (for example 100). Scale 50% makes a half paper out of 50.</p>';
+};
+APP.forms.addExam = function (f) { var d = formData(f); EX(); S().exams.push({ id: uid(), name: d.name, date: d.date, scale: Math.min(100, Math.max(10, parseInt(d.scale, 10) || 100)) }); save(); rerender(); toast('Exam created'); };
+APP.act.delExam = function (el) {
+  var id = el.getAttribute('data-id'); if (!ask('Delete this exam and all its marks?')) return; S().exams = S().exams.filter(function (e) { return e.id !== id; }); delete S().marks[id]; save(); rerender();
+};
+
+// ---------- enter marks ----------
+function exPick() {
+  var s = S(), ex = s.exams; if (!exSel.exam || !examById(exSel.exam)) exSel.exam = ex.length ? ex[ex.length - 1].id : '';
+  if (!exSel.cls || !classById(exSel.cls)) { exSel.cls = s.classes[0].id; exSel.sec = ''; } var c = classById(exSel.cls); if (c.sections.indexOf(exSel.sec) < 0) exSel.sec = c.sections[0];
+  var names = c.subjects.map(function (x) { return x.name; }).concat(['— Teacher remarks —']); if (names.indexOf(exSel.subj) < 0) exSel.subj = names[0];
+  return { c: c, names: names };
+}
+function pickBar(withSubj) {
+  var s = S(), p = exPick();
+  return '<div class="card"><div class="g2"><label class="f"><span>Exam</span><select data-c="exExam">' + opt(s.exams, exSel.exam, 'id', 'name') + '</select></label><label class="f"><span>Class</span><select data-c="exCls">' + opt(s.classes, exSel.cls, 'id', 'name') + '</select></label></div>' +
+    '<div class="g2"><label class="f"><span>Section</span><select data-c="exSec">' + opt(p.c.sections, exSel.sec) + '</select></label>' + (withSubj ? '<label class="f"><span>Subject</span><select data-c="exSubj">' + opt(p.names, exSel.subj) + '</select></label>' : '') + '</div></div>';
+}
+APP.chg.exExam = function (el) { exSel.exam = el.value; rerender(); };
+APP.chg.exCls = function (el) { exSel.cls = el.value; exSel.sec = ''; exSel.subj = ''; rerender(); };
+APP.chg.exSec = function (el) { exSel.sec = el.value; rerender(); };
+APP.chg.exSubj = function (el) { exSel.subj = el.value; rerender(); };
+function exStudents() { return S().students.filter(function (x) { return x.status === 'active' && x.classId === exSel.cls && x.section === exSel.sec; }).sort(function (a, b) { return a.name.localeCompare(b.name); }); }
+
+ETAB.marks = function () {
+  if (!S().exams.length) return '<div class="card mut">Create an exam first (Exams tab).</div>';
+  var p = exPick(), ex = examById(exSel.exam), list = exStudents(), M = (S().marks[ex.id] = S().marks[ex.id] || {}), remark = exSel.subj.indexOf('Teacher') >= 0;
+  var sub = p.c.subjects.filter(function (x) { return x.name === exSel.subj; })[0], tot = sub ? subjTotal(ex, sub) : 0;
+  return pickBar(true) + (list.length ? '<form data-f="saveMarks"><div class="row" style="margin-bottom:8px"><b>' + esc(exSel.subj) + (remark ? '' : ' – out of ' + tot) + '</b><span class="mut">' + (remark ? '' : 'Type A for absent.') + '</span><div class="sp"></div><button class="btn p" type="submit">Save</button></div><div class="tw"><table><tbody>' +
+    list.map(function (x, i) { var v = (M[x.id] || {})[remark ? '_remark' : exSel.subj]; return '<tr><td style="width:36px" class="mut">' + (i + 1) + '</td><td><b>' + esc(x.name) + '</b><div class="mut">' + esc(x.fatherName) + ' • ' + esc(x.admNo) + '</div></td><td style="width:' + (remark ? '60%' : '120px') + '"><input name="m_' + x.id + '" value="' + esc(v == null ? '' : v) + '" ' + (remark ? 'placeholder="Optional remark"' : 'inputmode="decimal" autocomplete="off" style="text-align:center;font-weight:700"') + '></td></tr>'; }).join('') +
+    '</tbody></table></div></form>' : '<div class="card mut">No active students in this class and section.</div>');
+};
+APP.forms.saveMarks = function (f) {
+  var d = formData(f), ex = examById(exSel.exam), M = S().marks[ex.id] = S().marks[ex.id] || {}, remark = exSel.subj.indexOf('Teacher') >= 0, p = exPick();
+  var sub = p.c.subjects.filter(function (x) { return x.name === exSel.subj; })[0], tot = sub ? subjTotal(ex, sub) : 0, bad = [];
+  exStudents().forEach(function (x) {
+    var v = d['m_' + x.id]; M[x.id] = M[x.id] || {}; var key = remark ? '_remark' : exSel.subj;
+    if (remark) { if (v) M[x.id][key] = v; else delete M[x.id][key]; return; }
+    if (v === '') { delete M[x.id][key]; return; }
+    if (/^a$/i.test(v)) { M[x.id][key] = 'A'; return; }
+    var n = Number(v); if (isNaN(n) || n < 0 || n > tot) { bad.push(x.name); return; } M[x.id][key] = n;
+  });
+  if (bad.length) return toast('Not saved for: ' + bad.slice(0, 3).join(', ') + (bad.length > 3 ? '…' : '') + '. Marks must be 0 to ' + tot + ' or A.');
+  save(); toast('Marks saved');
+};
+
+// ---------- results ----------
+function resultsFor(ex, clsId, sec) {
+  var c = classById(clsId), M = S().marks[ex.id] || {}, pass = EX().passPct;
+  var rows = S().students.filter(function (x) { return x.status === 'active' && x.classId === clsId && (!sec || x.section === sec); }).map(function (x) {
+    var m = M[x.id] || {}, got = 0, out = 0, fail = 0, entered = 0, subs = c.subjects.map(function (s) {
+      var t = subjTotal(ex, s), v = m[s.name]; if (v === undefined) return { name: s.name, total: t, v: null };
+      entered++; var n = v === 'A' ? 0 : v; got += n; out += t; if (n < t * pass / 100) fail++; return { name: s.name, total: t, v: v, n: n };
+    });
+    var pct = out ? got / out * 100 : 0;
+    return { x: x, subs: subs, got: got, out: out, pct: pct, grade: out ? gradeOf(pct) : '-', fail: fail, entered: entered, result: !entered ? '-' : fail ? 'Fail' : 'Pass', remark: m._remark || '' };
+  });
+  var sorted = rows.filter(function (r) { return r.out; }).sort(function (a, b) { return b.pct - a.pct; }), pos = 0, last = null;
+  sorted.forEach(function (r, i) { if (last === null || r.pct !== last) { pos = i + 1; last = r.pct; } r.pos = pos; });
+  return rows.sort(function (a, b) { return (a.pos || 9999) - (b.pos || 9999) || a.x.name.localeCompare(b.x.name); });
+}
+ETAB.results = function () {
+  if (!S().exams.length) return '<div class="card mut">Create an exam first.</div>';
+  exPick(); var ex = examById(exSel.exam), rs = resultsFor(ex, exSel.cls, exSel.sec), p = rs.filter(function (r) { return r.result === 'Pass'; }).length, f = rs.filter(function (r) { return r.result === 'Fail'; }).length;
+  return pickBar(false) + '<div class="row" style="margin-bottom:8px"><span class="tag ok">Pass ' + p + '</span><span class="tag bad">Fail ' + f + '</span><div class="sp"></div><button class="btn s" data-a="printSheet">Print result sheet</button><button class="btn s" data-a="resCsv">CSV</button><button class="btn p" data-a="printCards">Print report cards</button></div>' +
+    '<div class="tw"><table><thead><tr><th>Pos</th><th>Name</th><th style="text-align:right">Marks</th><th style="text-align:right">%</th><th>Grade</th><th>Result</th><th></th></tr></thead><tbody>' +
+    rs.map(function (r) { return '<tr><td>' + (r.pos || '–') + '</td><td><b>' + esc(r.x.name) + '</b></td><td style="text-align:right">' + (r.out ? r.got + ' / ' + r.out : '–') + '</td><td style="text-align:right">' + (r.out ? r.pct.toFixed(1) : '–') + '</td><td>' + r.grade + '</td><td><span class="tag ' + (r.result === 'Pass' ? 'ok' : r.result === 'Fail' ? 'bad' : '') + '">' + r.result + '</span></td><td><button class="btn s" data-a="oneCard" data-id="' + r.x.id + '">Report card</button></td></tr>'; }).join('') + '</tbody></table></div>' +
+    '<p class="mut">Marks not entered yet show as "–" and are not counted. Pass needs at least ' + EX().passPct + '% in every subject.</p>';
+};
+function cardHtml(r, ex) {
+  var s = S(), pr = s.profile, c = classById(r.x.classId), att = (function () { var P = 0, t = 0; Object.keys(s.att || {}).forEach(function (d) { var v = s.att[d][r.x.id]; if (v) { t++; if (v === 'P') P++; } }); return t ? Math.round(P * 100 / t) + '%' : '–'; })();
+  return '<div class="cert" style="page-break-after:always;font-family:Arial,sans-serif;padding:18px;max-width:720px">' + letterHead(pr) + '<h2 class="c" style="margin:6px 0;font-size:19px">REPORT CARD – ' + esc(ex.name.toUpperCase()) + ' ' + esc(pr.year) + '</h2>' +
+    '<table style="width:100%;font-size:14px;margin-bottom:8px"><tbody><tr><td>Name: <b>' + esc(r.x.name) + '</b></td><td>' + esc(s.settings.admLabel) + ': <b>' + esc(r.x.admNo) + '</b></td></tr><tr><td>Father: <b>' + esc(r.x.fatherName) + '</b></td><td>Class: <b>' + esc(c.name) + ' – ' + esc(r.x.section) + '</b></td></tr></tbody></table>' +
+    '<table border="1" cellspacing="0" cellpadding="6" style="width:100%;border-collapse:collapse;font-size:14px"><tr style="background:#eee"><th align="left">Subject</th><th>Total</th><th>Obtained</th><th>Grade</th></tr>' +
+    r.subs.map(function (u) { var pc = u.v === null ? '' : gradeOf((u.n || 0) / u.total * 100); return '<tr><td>' + esc(u.name) + '</td><td align="center">' + u.total + '</td><td align="center">' + (u.v === null ? '–' : u.v === 'A' ? 'Absent' : u.v) + '</td><td align="center">' + pc + '</td></tr>'; }).join('') +
+    '<tr style="background:#f5f5f5"><td><b>Total</b></td><td align="center"><b>' + r.out + '</b></td><td align="center"><b>' + r.got + '</b></td><td align="center"><b>' + r.grade + '</b></td></tr></table>' +
+    '<table style="width:100%;margin:10px 0;font-size:14px"><tbody><tr><td>Percentage: <b>' + (r.out ? r.pct.toFixed(1) + '%' : '–') + '</b></td><td>Position: <b>' + (r.pos || '–') + '</b></td><td>Result: <b>' + r.result + '</b></td><td>Attendance: <b>' + att + '</b></td></tr></tbody></table>' +
+    '<div style="font-size:14px;border:1px solid #999;padding:6px;min-height:42px"><b>Remarks:</b> ' + esc(r.remark || REMARK[r.grade] || '') + '</div>' +
+    '<div class="sig"><span>Class teacher</span><span>Parent</span><span>' + (pr.principal ? esc(pr.principal) + '<br>' : '') + 'Principal</span></div>' +
+    '<div style="font-size:11px;margin-top:10px;color:#444">Grades: ' + EX().grades.slice().sort(function (a, b) { return b.min - a.min; }).map(function (g) { return g.g + ' (' + g.min + '%+)'; }).join(', ') + '. Pass mark: ' + EX().passPct + '% in each subject.</div></div>';
+}
+APP.act.printCards = function () { var ex = examById(exSel.exam), rs = resultsFor(ex, exSel.cls, exSel.sec).filter(function (r) { return r.entered; }); if (!rs.length) return toast('No marks entered yet.'); printHtml(rs.map(function (r) { return cardHtml(r, ex); }).join('')); };
+APP.act.oneCard = function (el) { var ex = examById(exSel.exam), r = resultsFor(ex, exSel.cls, exSel.sec).filter(function (r) { return r.x.id === el.getAttribute('data-id'); })[0]; printHtml(cardHtml(r, ex)); };
+APP.act.printSheet = function () {
+  var ex = examById(exSel.exam), rs = resultsFor(ex, exSel.cls, exSel.sec), c = classById(exSel.cls);
+  printHtml('<div style="font-family:Arial;font-size:12px">' + letterHead(S().profile) + '<h3>Result sheet – ' + esc(ex.name) + ' – ' + esc(c.name) + ' ' + esc(exSel.sec) + '</h3><table border="1" cellspacing="0" cellpadding="4" style="width:100%;border-collapse:collapse"><tr><th>Pos</th><th>Name</th>' + c.subjects.map(function (s) { return '<th>' + esc(s.name) + '<br>(' + subjTotal(ex, s) + ')</th>'; }).join('') + '<th>Total</th><th>%</th><th>Grade</th><th>Result</th></tr>' +
+    rs.map(function (r) { return '<tr><td>' + (r.pos || '') + '</td><td>' + esc(r.x.name) + '</td>' + r.subs.map(function (u) { return '<td align="center">' + (u.v === null ? '' : u.v) + '</td>'; }).join('') + '<td align="center">' + (r.out ? r.got + '/' + r.out : '') + '</td><td align="center">' + (r.out ? r.pct.toFixed(1) : '') + '</td><td align="center">' + r.grade + '</td><td align="center">' + r.result + '</td></tr>'; }).join('') + '</table></div>', true);
+};
+APP.act.resCsv = function () {
+  var ex = examById(exSel.exam), rs = resultsFor(ex, exSel.cls, exSel.sec), c = classById(exSel.cls), rows = [['position', 'name'].concat(c.subjects.map(function (s) { return s.name; }), ['total', 'percent', 'grade', 'result']).map(csvCell).join(',')];
+  rs.forEach(function (r) { rows.push([r.pos || '', r.x.name].concat(r.subs.map(function (u) { return u.v === null ? '' : u.v; }), [r.got, r.out ? r.pct.toFixed(1) : '', r.grade, r.result]).map(csvCell).join(',')); });
+  download('result-' + ex.name + '.csv', '﻿' + rows.join('\r\n'), 'text/csv');
+};
+
+// ---------- setup ----------
+ETAB.setup = function () {
+  var c = EX(), s = S();
+  return '<div class="card"><h3 style="margin-bottom:6px">Subjects for each class</h3><p class="mut">Write subject:total marks, separated by commas. Example: <code>English:100, Urdu:100, Drawing:50</code></p><form data-f="saveSubjects">' +
+    s.classes.map(function (k) { return '<label class="f"><span>' + esc(k.name) + '</span><input name="s_' + k.id + '" value="' + esc(k.subjects.map(function (x) { return x.name + ':' + x.total; }).join(', ')) + '"></label>'; }).join('') +
+    '<label class="chk"><input type="checkbox" name="all">Copy the first class\'s subjects to every class</label><button class="btn p" type="submit" style="margin-top:8px">Save subjects</button></form></div>' +
+    '<div class="card"><h3 style="margin-bottom:6px">Grades and pass mark</h3><form data-f="saveGrades"><div class="g2"><label class="f"><span>Pass percentage (each subject)</span><input type="number" min="1" max="100" name="pass" value="' + c.passPct + '"></label>' +
+    '<label class="f"><span>Grades (minimum %: grade)</span><input name="grades" value="' + esc(c.grades.slice().sort(function (a, b) { return b.min - a.min; }).map(function (g) { return g.min + ':' + g.g; }).join(', ')) + '"></label></div><button class="btn p" type="submit">Save</button></form></div>';
+};
+APP.forms.saveSubjects = function (f) {
+  var d = formData(f), s = S(), first = null;
+  for (var i = 0; i < s.classes.length; i++) {
+    var k = s.classes[i], arr = String(d['s_' + k.id] || '').split(',').map(function (t) { var p = t.split(':'); return { name: p[0].trim(), total: Math.max(1, parseInt(p[1], 10) || 100) }; }).filter(function (x) { return x.name; });
+    if (d.all && i > 0 && first) arr = first.map(function (x) { return { name: x.name, total: x.total }; }); if (i === 0) first = arr; k.subjects = arr;
+  }
+  save(); rerender(); toast('Subjects saved. Marks already entered for removed subjects are ignored.');
+};
+APP.forms.saveGrades = function (f) {
+  var d = formData(f), g = String(d.grades).split(',').map(function (t) { var p = t.split(':'); return { min: parseFloat(p[0]), g: (p[1] || '').trim() }; }).filter(function (x) { return !isNaN(x.min) && x.g; });
+  if (!g.some(function (x) { return x.min <= 0; })) return toast('Add a lowest grade starting at 0, for example 0:F');
+  var c = EX(); c.grades = g; c.passPct = Math.min(100, Math.max(1, parseFloat(d.pass) || 33)); save(); toast('Saved');
+};
+
+
+// ===== CHUNK 6: DIARY + NOTICES to guardians (WhatsApp click-to-send, no paid API) =====
+var dyTab = 'write';
+var dySel = { date: today(), cls: '', sec: '' };
+
+function DY() { var s = S(); if (!s.diary) s.diary = []; return s.diary; }
+APP.mods.push({
+  id: 'diary', label: 'Diary', order: 70,
+  render: function () {
+    DY(); EX(); var tabs = [['write', 'Write diary'], ['past', 'Past diaries'], ['notice', 'Notice to parents']];
+    return '<h1 style="margin-bottom:12px">Diary &amp; Notices</h1><div class="tabs">' + tabs.map(function (t) { return '<button data-a="dyTab" data-t="' + t[0] + '" class="' + (t[0] === dyTab ? 'on' : '') + '">' + t[1] + '</button>'; }).join('') + '</div>' + DTAB[dyTab]();
+  }
+});
+APP.act.dyTab = function (el) { dyTab = el.getAttribute('data-t'); rerender(); };
+var DTAB = {};
+function dyClass() { var s = S(); if (!dySel.cls || !classById(dySel.cls)) { dySel.cls = s.classes[0].id; dySel.sec = ''; } var c = classById(dySel.cls); if (dySel.sec !== 'ALL' && c.sections.indexOf(dySel.sec) < 0) dySel.sec = c.sections[0]; return c; }
+function dyBar(withDate) {
+  var s = S(), c = dyClass();
+  return '<div class="card"><div class="g3">' + (withDate ? '<label class="f"><span>Date</span><input type="date" data-c="dyDate" value="' + dySel.date + '"></label>' : '') +
+    '<label class="f"><span>Class</span><select data-c="dyCls">' + opt(s.classes, dySel.cls, 'id', 'name') + '</select></label>' +
+    '<label class="f"><span>Section</span><select data-c="dySec"><option value="ALL"' + (dySel.sec === 'ALL' ? ' selected' : '') + '>All sections</option>' + opt(c.sections, dySel.sec) + '</select></label></div></div>';
+}
+APP.chg.dyDate = function (el) { if (el.value) { dySel.date = el.value; rerender(); } };
+APP.chg.dyCls = function (el) { dySel.cls = el.value; dySel.sec = ''; rerender(); };
+APP.chg.dySec = function (el) { dySel.sec = el.value; rerender(); };
+function dyStudents(cls, sec) { return S().students.filter(function (x) { return x.status === 'active' && x.classId === cls && (sec === 'ALL' || !sec || x.section === sec); }).sort(function (a, b) { return a.section.localeCompare(b.section) || a.name.localeCompare(b.name); }); }
+
+// ---------- write ----------
+DTAB.write = function () {
+  var c = dyClass(), ex = DY().filter(function (d) { return d.date === dySel.date && d.classId === dySel.cls && d.section === dySel.sec; })[0] || { items: [], note: '' };
+  function val(n) { var i = ex.items.filter(function (x) { return x.subject === n; })[0]; return i ? i.text : ''; }
+  return dyBar(true) + '<div class="card"><form data-f="saveDiary"><p class="mut" style="margin-top:0">Write only the subjects that have homework today. Empty ones are left out.</p>' +
+    c.subjects.map(function (s, i) { return '<label class="f"><span>' + esc(s.name) + '</span><textarea name="s_' + i + '" rows="2" placeholder="Homework / lesson for ' + esc(s.name) + '">' + esc(val(s.name)) + '</textarea></label>'; }).join('') +
+    '<label class="f"><span>Other note (test tomorrow, bring something…)</span><textarea name="note" rows="2">' + esc(ex.note) + '</textarea></label>' +
+    '<div class="row"><button class="btn p" type="submit">Save diary</button>' + (ex.id ? '<button class="btn" type="button" data-a="sendDiary" data-id="' + ex.id + '">Send to parents</button>' : '') + '</div></form></div>';
+};
+APP.forms.saveDiary = function (f) {
+  var d = formData(f), c = dyClass(), items = [];
+  c.subjects.forEach(function (s, i) { if (d['s_' + i]) items.push({ subject: s.name, text: d['s_' + i] }); });
+  if (!items.length && !d.note) return toast('Write at least one line.');
+  var list = DY(), ex = list.filter(function (x) { return x.date === dySel.date && x.classId === dySel.cls && x.section === dySel.sec; })[0];
+  if (!ex) { ex = { id: uid(), date: dySel.date, classId: dySel.cls, section: dySel.sec, sent: {} }; list.push(ex); }
+  ex.items = items; ex.note = d.note; save(); rerender(); toast('Diary saved'); setTimeout(function () { APP.act.sendDiary({ getAttribute: function () { return ex.id; } }); }, 50);
+};
+function diaryText(d, stu) {
+  var c = classById(d.classId), days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], dt = new Date(d.date + 'T00:00:00');
+  return 'Assalam o Alaikum' + (stu ? ' (' + stu.name + ')' : '') + '.\nDiary – ' + (c ? c.name : '') + (d.section && d.section !== 'ALL' ? ' ' + d.section : '') + ' – ' + days[dt.getDay()] + ' ' + fmtDate(d.date) + '\n\n' +
+    d.items.map(function (i) { return '*' + i.subject + ':* ' + i.text; }).join('\n') + (d.note ? '\n\nNote: ' + d.note : '') + '\n\n– ' + S().profile.name;
+}
+APP.act.sendDiary = function (el) {
+  var d = DY().filter(function (x) { return x.id === el.getAttribute('data-id'); })[0]; d.sent = d.sent || {};
+  sendModal('Send diary', dyStudents(d.classId, d.section), function (x) { return diaryText(d, x); }, d.sent, function () { save(); }, diaryText(d, null));
+};
+
+// ---------- generic "send to each guardian" list ----------
+var sendCtx = null;
+function sendModal(title, students, msgFn, sentMap, onSent, plainText) {
+  sendCtx = { students: students, msgFn: msgFn, sent: sentMap, onSent: onSent, text: plainText };
+  drawSend(title);
+}
+function drawSend(title) {
+  var c = sendCtx, done = c.students.filter(function (x) { return c.sent[x.id]; }).length;
+  modal(title || sendCtx.title || 'Send', '<div class="note" style="margin-bottom:10px">Press <b>WhatsApp</b> for each parent. WhatsApp opens with the message ready and you press send. ' +
+    (c.text ? 'For a class WhatsApp group, use <b>Copy text</b> and paste it once.' : '') + '</div><div class="row" style="margin-bottom:8px"><b>' + done + ' of ' + c.students.length + ' sent</b><div class="sp"></div>' + (c.text ? '<button class="btn s" data-a="copyText">Copy text</button>' : '') + '</div>' +
+    '<div class="tw" style="max-height:55vh;overflow:auto"><table><tbody>' + c.students.map(function (x) {
+      var link = waLink(x.whatsapp || x.phone, c.msgFn(x));
+      return '<tr><td><b>' + esc(x.name) + '</b><div class="mut">' + esc(x.fatherName) + ' • ' + esc(x.section) + '</div></td><td style="text-align:right">' + (link ? (c.sent[x.id] ? '<span class="tag ok">Sent</span> ' : '') + '<a class="btn s' + (c.sent[x.id] ? '' : ' p') + '" target="_blank" rel="noopener" data-a="markSent" data-id="' + x.id + '" href="' + link + '">WhatsApp</a>' : '<span class="mut">no phone</span>') + '</td></tr>';
+    }).join('') + (c.students.length ? '' : '<tr><td class="mut">No students.</td></tr>') + '</tbody></table></div>', false);
+  sendCtx.title = title;
+}
+APP.act.markSent = function (el) { sendCtx.sent[el.getAttribute('data-id')] = true; sendCtx.onSent(); setTimeout(function () { var st = $('modal').querySelector('.tw'), y = st ? st.scrollTop : 0; drawSend(sendCtx.title); var n = $('modal').querySelector('.tw'); if (n) n.scrollTop = y; }, 300); };
+APP.act.copyText = function () {
+  var t = sendCtx.text; function ok() { toast('Copied. Paste it in WhatsApp.'); }
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(ok, function () { window.prompt('Copy this text:', t); }); else window.prompt('Copy this text:', t);
+};
+
+// ---------- past diaries ----------
+DTAB.past = function () {
+  var list = DY().slice().sort(function (a, b) { return b.date.localeCompare(a.date); }).slice(0, 60);
+  return '<div class="tw"><table><thead><tr><th>Date</th><th>Class</th><th>Subjects</th><th></th></tr></thead><tbody>' + (list.length ? list.map(function (d) {
+    return '<tr><td>' + fmtDate(d.date) + '</td><td>' + esc(className(d.classId)) + (d.section && d.section !== 'ALL' ? ' – ' + esc(d.section) : ' (all)') + '</td><td class="mut">' + esc(d.items.map(function (i) { return i.subject; }).join(', ')) + '</td><td><button class="btn s" data-a="openDiary" data-id="' + d.id + '">Open</button> <button class="btn s" data-a="sendDiary" data-id="' + d.id + '">Send</button> <button class="btn s d" data-a="delDiary" data-id="' + d.id + '">×</button></td></tr>';
+  }).join('') : '<tr><td colspan="4" class="mut">No diaries yet.</td></tr>') + '</tbody></table></div>';
+};
+APP.act.openDiary = function (el) { var d = DY().filter(function (x) { return x.id === el.getAttribute('data-id'); })[0]; dySel.date = d.date; dySel.cls = d.classId; dySel.sec = d.section; dyTab = 'write'; rerender(); };
+APP.act.delDiary = function (el) { if (!ask('Delete this diary?')) return; var id = el.getAttribute('data-id'); S().diary = S().diary.filter(function (x) { return x.id !== id; }); save(); rerender(); };
+
+// ---------- notices ----------
+var noticeSent = {};
+DTAB.notice = function () {
+  var s = S(), c = dyClass();
+  return '<div class="card"><form data-f="sendNotice"><div class="g2"><label class="f"><span>To class</span><select name="cls"><option value="*">Whole school</option>' + opt(s.classes, dySel.cls, 'id', 'name') + '</select></label>' +
+    '<label class="f"><span>Quick text</span><select data-c="noticeTpl"><option value="">— choose —</option><option value="holiday">Holiday notice</option><option value="meeting">Parent meeting</option><option value="exam">Exam starts</option><option value="fee">Fee reminder</option></select></label></div>' +
+    '<label class="f"><span>Message (write {name} to put the student name)</span><textarea name="msg" id="noticeMsg" rows="5" required></textarea></label><button class="btn p" type="submit">Prepare to send</button></form></div>';
+};
+APP.chg.noticeTpl = function (el) {
+  var p = S().profile.name, T = {
+    holiday: 'Assalam o Alaikum. School will remain closed on ___ for ___. Classes will reopen on ___. - ' + p,
+    meeting: 'Assalam o Alaikum. Parent-teacher meeting of {name} will be held on ___ at ___. Your presence is requested. - ' + p,
+    exam: 'Assalam o Alaikum. Exams of {name} will start from ___. Please make sure of regular preparation. - ' + p,
+    fee: 'Assalam o Alaikum. Fee of {name} for this month is due. Please pay by ___. - ' + p
+  };
+  if (T[el.value]) $('noticeMsg').value = T[el.value];
+};
+APP.forms.sendNotice = function (f) {
+  var d = formData(f), list = d.cls === '*' ? S().students.filter(function (x) { return x.status === 'active'; }) : dyStudents(d.cls, 'ALL'), key = d.msg; noticeSent = {};
+  sendModal('Notice – ' + list.length + ' parents', list, function (x) { return d.msg.replace(/\{name\}/g, x.name); }, noticeSent, function () { }, d.msg.replace(/\{name\}/g, 'your child'));
+};
+
+
+// ===== CHUNK 7: LEAVE RECORDS (students and staff). Approved leave pre-fills "L" in attendance. =====
+var lvTab = 'student';
+var lvF = { show: 'upcoming' };
+function LV() { var s = S(); if (!s.leaves) s.leaves = []; return s.leaves; }
+var LV_TYPES = ['Sick', 'Family matter', 'Wedding / funeral', 'Travel', 'Other'];
+function daysBetween(a, b) { return Math.round((new Date(b + 'T00:00:00') - new Date(a + 'T00:00:00')) / 86400000) + 1; }
+
+APP.mods.push({
+  id: 'leave', label: 'Leave', order: 80,
+  render: function () {
+    LV(); return '<h1 style="margin-bottom:12px">Leave</h1><div class="tabs"><button data-a="lvTab" data-t="student" class="' + (lvTab === 'student' ? 'on' : '') + '">Student leave</button><button data-a="lvTab" data-t="staff" class="' + (lvTab === 'staff' ? 'on' : '') + '">Staff leave</button></div>' + lvBody();
+  }
+});
+APP.act.lvTab = function (el) { lvTab = el.getAttribute('data-t'); rerender(); };
+
+function lvBody() {
+  var s = S(), isSt = lvTab === 'student', c = SO(), list = LV().filter(function (l) { return l.kind === lvTab && (lvF.show === 'all' || l.to >= today()); }).sort(function (a, b) { return b.from.localeCompare(a.from); });
+  var who = isSt ? s.students.filter(function (x) { return x.status === 'active'; }) : s.staff.filter(function (x) { return x.status === 'active'; });
+  var h = '<div class="card"><form data-f="addLeave"><input type="hidden" name="kind" value="' + lvTab + '">' + '<div class="g3">' +
+    (isSt ? '<label class="f"><span>Class</span><select data-c="lvCls" id="lvCls">' + opt(s.classes, '', 'id', 'name') + '</select></label><label class="f"><span>Student</span><select name="person" id="lvPerson" required></select></label>'
+      : '<label class="f"><span>Staff</span><select name="person" required>' + opt(who, '', 'id', 'name') + '</select></label><span></span>') +
+    '<label class="f"><span>Type</span><select name="type">' + opt(LV_TYPES, '') + '</select></label></div>' +
+    '<div class="g3"><label class="f"><span>From</span><input type="date" name="from" value="' + today() + '" required></label><label class="f"><span>To</span><input type="date" name="to" value="' + today() + '" required></label><label class="f"><span>Reason / note</span><input name="reason"></label></div>' +
+    '<button class="btn p" type="submit">Save leave</button></form></div>';
+  h += '<div class="row" style="margin-bottom:8px"><label class="chk" style="margin:0"><input type="checkbox" data-c="lvAppr"' + (s.settings.leaveApproval ? ' checked' : '') + '>New leave needs approval</label><select data-c="lvShow" style="max-width:200px"><option value="upcoming"' + (lvF.show === 'upcoming' ? ' selected' : '') + '>Current and upcoming</option><option value="all"' + (lvF.show === 'all' ? ' selected' : '') + '>All records</option></select></div>';
+  h += '<div class="tw"><table><thead><tr><th>' + (isSt ? 'Student' : 'Staff') + '</th><th>From – To</th><th>Days</th><th>Type</th><th>Status</th><th></th></tr></thead><tbody>' + (list.length ? list.map(function (l) {
+    var p = isSt ? stById(l.personId) : staffById(l.personId), n = daysBetween(l.from, l.to);
+    return '<tr><td><b>' + esc(p ? p.name : '?') + '</b>' + (isSt && p ? '<div class="mut">' + esc(className(p.classId)) + ' – ' + esc(p.section) + '</div>' : '') + '</td><td>' + fmtDate(l.from) + (l.to !== l.from ? ' – ' + fmtDate(l.to) : '') + '</td><td>' + n + '</td><td>' + esc(l.type) + (l.reason ? '<div class="mut">' + esc(l.reason) + '</div>' : '') + '</td><td><span class="tag ' + (l.status === 'approved' ? 'ok' : l.status === 'rejected' ? 'bad' : '') + '">' + l.status + '</span></td><td>' +
+      (l.status === 'pending' ? '<button class="btn s p" data-a="lvSet" data-id="' + l.id + '" data-to="approved">Approve</button> <button class="btn s" data-a="lvSet" data-id="' + l.id + '" data-to="rejected">Reject</button> ' : '') + '<button class="btn s d" data-a="lvDel" data-id="' + l.id + '">×</button></td></tr>';
+  }).join('') : '<tr><td colspan="6" class="mut">No leave records.</td></tr>') + '</tbody></table></div>';
+  if (!isSt) {
+    h += '<h3 style="margin:16px 0 6px">This month: leaves used by staff</h3><div class="tw"><table><thead><tr><th>Staff</th><th>Approved leave days</th><th>Allowed</th></tr></thead><tbody>' + who.map(function (x) {
+      var used = staffLeaveDays(x.id, thisMonth()); return '<tr><td>' + esc(x.name) + '</td><td' + (used > c.leavesPerMonth ? ' style="color:var(--bad);font-weight:700"' : '') + '>' + used + '</td><td>' + (c.leaveOn ? c.leavesPerMonth : 0) + '</td></tr>';
+    }).join('') + '</tbody></table></div>';
+  }
+  return h;
+}
+APP.chg.lvAppr = function (el) { S().settings.leaveApproval = el.checked; save(); toast(el.checked ? 'New leave will wait for approval' : 'New leave is approved automatically'); };
+APP.chg.lvShow = function (el) { lvF.show = el.value; rerender(); };
+APP.chg.lvCls = function () { fillPeople(); };
+function fillPeople() {
+  var cls = $('lvCls'), sel = $('lvPerson'); if (!cls || !sel) return;
+  var list = S().students.filter(function (x) { return x.status === 'active' && x.classId === cls.value; }).sort(function (a, b) { return a.section.localeCompare(b.section) || a.name.localeCompare(b.name); });
+  sel.innerHTML = list.map(function (x) { return '<option value="' + x.id + '">' + esc(x.name) + ' (' + esc(x.section) + ')</option>'; }).join('');
+}
+mod('leave').after = fillPeople;
+
+APP.forms.addLeave = function (f) {
+  var d = formData(f); if (!d.person) return toast('Choose a person.'); if (d.to < d.from) return toast('The end date is before the start date.');
+  LV().push({ id: uid(), kind: d.kind, personId: d.person, from: d.from, to: d.to, type: d.type, reason: d.reason, status: S().settings.leaveApproval ? 'pending' : 'approved', created: today() });
+  save(); rerender(); toast('Leave saved');
+};
+APP.act.lvSet = function (el) { LV().filter(function (l) { return l.id === el.getAttribute('data-id'); })[0].status = el.getAttribute('data-to'); save(); rerender(); };
+APP.act.lvDel = function (el) { if (!ask('Delete this leave record?')) return; var id = el.getAttribute('data-id'); S().leaves = S().leaves.filter(function (l) { return l.id !== id; }); save(); rerender(); };
+
+function onLeave(kind, id, date) { return LV().some(function (l) { return l.kind === kind && l.personId === id && l.status === 'approved' && date >= l.from && date <= l.to; }); }
+APP.attDefault = function (id, date) { return onLeave('student', id, date) ? 'L' : null; };
+APP.staffAttDefault = function (id, date) { return onLeave('staff', id, date) ? 'L' : null; };
+function staffLeaveDays(id, M) {
+  var n = 0, y = +M.slice(0, 4), m = +M.slice(5, 7), days = new Date(y, m, 0).getDate();
+  for (var d = 1; d <= days; d++) { var ds = M + '-' + ('0' + d).slice(-2); if (!offReason(ds) && onLeave('staff', id, ds)) n++; }
+  return n;
+}
+
+// on-leave marker in the student profile
+(APP.profileRows = APP.profileRows || []).push(function (x) {
+  var cur = LV().filter(function (l) { return l.kind === 'student' && l.personId === x.id && l.status === 'approved' && l.to >= today(); })[0];
+  return cur ? '<tr><td class="mut">Leave</td><td>' + fmtDate(cur.from) + ' to ' + fmtDate(cur.to) + ' (' + esc(cur.type) + ')</td></tr>' : '';
+});
+
+
+// ===== CHUNK 8: ONLINE SYNC (Supabase over plain web calls, no library) =====
+// Local-first: the app always works offline from the device database. When signed in and online, each school is
+// copied to the cloud (one row per school, protected by row-level security) and pulled on other devices.
+// Each school has a version number (rev). A save only succeeds if the cloud still has the version we last saw,
+// so two devices can never silently overwrite each other: a conflict screen appears instead.
+var SY = { cfg: null, ses: null, del: [], state: 'local', last: '', busy: false, timer: null, msg: '', conflicts: [] };
+
+function meta(s) { if (!s.sync) s.sync = { rev: 0, dirty: true, v: 1 }; return s.sync; }
+function hasSync() { return !!(SY.cfg && SY.cfg.url && SY.cfg.key && SY.ses); }
+function base() { return SY.cfg.url.replace(/\/+$/, ''); }
+function nowSec() { return Math.floor(Date.now() / 1000); }
+
+function http(path, o) {
+  o = o || {};
+  var h = { apikey: SY.cfg.key, 'Content-Type': 'application/json' };
+  if (o.token) h.Authorization = 'Bearer ' + o.token;   // only the signed-in user's token; the project key goes in apikey ONLY (new publishable keys are not tokens)
+  if (o.prefer) h.Prefer = o.prefer;
+  return fetch(base() + path, { method: o.method || 'GET', headers: h, body: o.body ? JSON.stringify(o.body) : undefined }).then(function (r) {
+    return r.text().then(function (t) { var j = null; try { j = t ? JSON.parse(t) : null; } catch (e) { } return { ok: r.ok, status: r.status, json: j }; });
+  });
+}
+function errText(r) { var j = r.json || {}; return j.msg || j.error_description || j.message || j.error || ('Error ' + r.status); }
+
+// ---------- status chip ----------
+function chip(state, text) {
+  SY.state = state; var el = $('syncChip'); if (!el) return;
+  el.textContent = text; el.style.color = state === 'error' || state === 'conflict' ? 'var(--bad)' : '';
+}
+function updateChip() {
+  if (!hasSync()) return chip('local', 'Saved on this device');
+  if (SY.conflicts.length) return chip('conflict', 'Needs attention');
+  if (SY.busy) return chip('syncing', 'Syncing…');
+  if (SY.state === 'offline') return chip('offline', 'Offline – will sync later');
+  if (SY.state === 'error') return chip('error', 'Sync problem');
+  var dirty = schoolList().some(function (s) { return meta(s).dirty; });
+  chip(dirty ? 'pending' : 'ok', dirty ? 'Waiting to sync…' : 'Synced ' + SY.last);
+}
+function hhmm() { var d = new Date(); return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2); }
+APP.act.syncChip = function () { setTab = 'sync'; go('settings'); };
+
+// ---------- login session ----------
+function setSession(j) {
+  SY.ses = { access_token: j.access_token, refresh_token: j.refresh_token, expires_at: nowSec() + (j.expires_in || 3600), uid: j.user && j.user.id, email: j.user && j.user.email };
+  kvPut('sync_ses', SY.ses);
+}
+function dropSession() { SY.ses = null; kvPut('sync_ses', null); }
+function token() {
+  if (!SY.ses) return Promise.reject({ login: true });
+  if (SY.ses.expires_at - nowSec() > 60) return Promise.resolve(SY.ses.access_token);
+  return http('/auth/v1/token?grant_type=refresh_token', { method: 'POST', body: { refresh_token: SY.ses.refresh_token } }).then(function (r) {
+    if (!r.ok || !r.json || !r.json.access_token) { if (r.status >= 400 && r.status < 500) { dropSession(); throw { login: true }; } throw { text: errText(r) }; }
+    r.json.user = r.json.user || { id: SY.ses.uid, email: SY.ses.email }; setSession(r.json); return SY.ses.access_token;
+  });
+}
+function authed(method, path, body, prefer) { return token().then(function (t) { return http(path, { method: method, body: body, prefer: prefer, token: t }); }); }
+
+// ---------- pull ----------
+function stripped(s) { var c = JSON.parse(JSON.stringify(s)); delete c.sync; return c; }
+function enc(id) { return encodeURIComponent(id); }
+function fetchSchool(id) {
+  return authed('GET', '/rest/v1/school_data?school_id=eq.' + enc(id) + '&select=data,rev,name').then(function (r) {
+    if (!r.ok || !r.json || !r.json[0]) throw { text: 'Could not download the school.' };
+    var row = r.json[0], d = row.data; d.sync = { rev: row.rev, dirty: false, v: 1 }; DB.schools[id] = d; return true;
+  });
+}
+function dl(id) { return fetchSchool(id); }
+function pull() {
+  var changed = false;
+  return authed('GET', '/rest/v1/school_data?select=school_id,name,rev,updated_at').then(function (r) {
+    if (!r.ok) throw { text: errText(r) };
+    var remote = {}, jobs = [];
+    (r.json || []).forEach(function (x) { remote[x.school_id] = x; });
+    Object.keys(remote).forEach(function (id) {
+      if (SY.del.indexOf(id) >= 0) return;
+      var x = remote[id], l = DB.schools[id];
+      if (!l) { jobs.push(dl(id).then(function () { changed = true; })); return; }
+      var m = meta(l);
+      if (x.rev > m.rev) { if (m.dirty && m.rev > 0) addConflict(id, x); else if (m.dirty) addConflict(id, x); else jobs.push(dl(id).then(function () { changed = true; })); }
+    });
+    Object.keys(DB.schools).forEach(function (id) {   // removed from the cloud by another device
+      var m = meta(DB.schools[id]);
+      if (!remote[id] && m.rev > 0) { if (m.dirty) { m.rev = 0; } else { delete DB.schools[id]; changed = true; } }
+    });
+    return Promise.all(jobs);
+  }).then(function () {
+    if (changed) { if (!DB.schools[DB.active]) DB.active = Object.keys(DB.schools)[0] || null; flushSave(); }
+    return changed;
+  });
+}
+function addConflict(id, x) { if (!SY.conflicts.some(function (c) { return c.id === id; })) SY.conflicts.push({ id: id, rev: x.rev, at: x.updated_at }); }
+
+// ---------- push ----------
+function push() {
+  var jobs = [];
+  SY.del.slice().forEach(function (id) {
+    jobs.push(authed('DELETE', '/rest/v1/school_data?school_id=eq.' + enc(id)).then(function (r) { if (r.ok || r.status === 404) { SY.del = SY.del.filter(function (x) { return x !== id; }); kvPut('sync_del', SY.del); } else throw { text: errText(r) }; }));
+  });
+  return Promise.all(jobs).then(function () {
+    var chain = Promise.resolve();
+    schoolList().forEach(function (s) {
+      var m = meta(s); if (!m.dirty || SY.conflicts.some(function (c) { return c.id === s.id; })) return;
+      chain = chain.then(function () {
+        var v0 = m.v, copy = stripped(s), name = s.profile.name;
+        if (!m.rev) return authed('POST', '/rest/v1/school_data', { school_id: s.id, name: name, data: copy, rev: 1 }, 'return=minimal').then(function (r) {
+          if (r.status === 409) return addConflict(s.id, { rev: 0 });
+          if (!r.ok) throw { text: errText(r) }; m.rev = 1; if (m.v === v0) m.dirty = false;
+        });
+        return authed('PATCH', '/rest/v1/school_data?school_id=eq.' + enc(s.id) + '&rev=eq.' + m.rev, { data: copy, name: name, rev: m.rev + 1, updated_at: new Date().toISOString() }, 'return=representation').then(function (r) {
+          if (!r.ok) throw { text: errText(r) };
+          if (!r.json || !r.json.length) return addConflict(s.id, { rev: m.rev + 1 });
+          m.rev = m.rev + 1; if (m.v === v0) m.dirty = false;
+        });
+      });
+    });
+    return chain;
+  });
+}
+
+// ---------- run ----------
+function syncNow(manual) {
+  if (!SY.cfg || !SY.ses) { updateChip(); return Promise.resolve(); }
+  if (SY.busy) return Promise.resolve(); SY.busy = true; updateChip();
+  return pull().then(function (changed) { return push().then(function () { return changed; }); }).then(function (changed) {
+    SY.state = 'ok'; SY.msg = ''; SY.last = hhmm(); flushSave();
+    if (changed) refreshAfterPull();
+    if (SY.conflicts.length) showConflict(); else if (manual) toast('Synced');
+  }).catch(function (e) {
+    if (e && e.login) { SY.state = 'local'; SY.msg = 'Please sign in again.'; if (manual) toast(SY.msg); }
+    else if (e instanceof TypeError) { SY.state = 'offline'; SY.msg = 'No internet or wrong server address.'; if (manual) toast('Could not reach the server. Your data is safe on this device.'); }
+    else { SY.state = 'error'; SY.msg = (e && e.text) || 'Something went wrong.'; if (manual) toast(SY.msg); }
+  }).then(function () { SY.busy = false; updateChip(); if (setTab === 'sync' && location.hash === '#/settings') rerender(); });
+}
+function syncSoon(ms) { clearTimeout(SY.timer); SY.timer = setTimeout(function () { syncNow(false); }, ms == null ? 6000 : ms); }
+function refreshAfterPull() {
+  var a = document.activeElement, typing = a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName), open = !$('modal').classList.contains('hide');
+  if (typing || open) toast('Updated from another device. It will show when you open the next page.'); else route();
+}
+APP.onSave = function () {
+  if (!DB.active || !S()) return; var m = meta(S()); m.dirty = true; m.v = (m.v || 0) + 1;
+  if (hasSync()) { if (SY.state !== 'conflict') { chip('pending', 'Waiting to sync…'); } syncSoon(6000); }
+};
+APP.schoolDeleted = function (id) { var l = DB.schools[id]; if (l && meta(l).rev > 0 && SY.cfg) { SY.del.push(id); kvPut('sync_del', SY.del); if (hasSync()) syncSoon(1500); } };
+APP.restored = function () {
+  if (!hasSync()) return; schoolList().forEach(function (s) { var m = meta(s); m.dirty = true; m.v = (m.v || 0) + 1; if (DB.owner !== SY.ses.uid) m.rev = 0; });
+  DB.owner = SY.ses.uid; flushSave(); syncSoon(1500);
+};
+APP.afterLoad = function () {
+  kvGet('sync_cfg', function (c) { kvGet('sync_ses', function (s) { kvGet('sync_del', function (d) {
+    SY.cfg = c; SY.ses = s; SY.del = d || []; updateChip(); if (hasSync()) syncNow(false);
+  }); }); });
+  setInterval(function () { if (hasSync() && !document.hidden && !SY.busy && !SY.conflicts.length) syncNow(false); }, 90000);
+  window.addEventListener('online', function () { if (hasSync()) syncNow(false); });
+  document.addEventListener('visibilitychange', function () { if (!document.hidden && hasSync() && SY.state !== 'conflict') syncSoon(800); });
+};
+
+// ---------- conflicts ----------
+function showConflict() {
+  var c = SY.conflicts[0]; if (!c) return; var l = DB.schools[c.id]; if (!l) { SY.conflicts.shift(); return showConflict(); }
+  modal('Two versions of "' + l.profile.name + '"', '<div class="note warn"><p style="margin-top:0">This school was changed on another device (or restored from a backup) and also changed here. Choose which copy to keep. <b>The other copy will be lost</b>, so download a backup first if you are not sure.</p></div>' +
+    '<div class="row" style="margin-top:12px"><button class="btn" data-a="cfBackup">Download backup of this device</button></div>' +
+    '<div class="row" style="margin-top:10px"><button class="btn p" data-a="cfCloud">Use the online copy</button><button class="btn d" data-a="cfMine">Keep this device\'s copy</button><button class="btn" data-a="close">Decide later</button></div>');
+}
+APP.act.cfBackup = function () { APP.act.dlBackup(); };
+APP.act.cfCloud = function () {
+  var c = SY.conflicts.shift(); closeModal(); SY.busy = true;
+  dl(c.id).then(function () { flushSave(); toast('Online copy loaded'); }).catch(function (e) { toast((e && e.text) || 'Could not load.'); }).then(function () { SY.busy = false; updateChip(); route(); if (SY.conflicts.length) showConflict(); });
+};
+APP.act.cfMine = function () {
+  var c = SY.conflicts.shift(), s = DB.schools[c.id], m = meta(s); closeModal(); SY.busy = true;
+  authed('GET', '/rest/v1/school_data?school_id=eq.' + enc(c.id) + '&select=rev').then(function (r) {
+    var remoteRev = r.json && r.json[0] ? r.json[0].rev : 0, v0 = m.v, copy = stripped(s);
+    if (!remoteRev) return authed('POST', '/rest/v1/school_data', { school_id: c.id, name: s.profile.name, data: copy, rev: 1 }, 'return=minimal').then(function (x) { if (!x.ok) throw { text: errText(x) }; m.rev = 1; if (m.v === v0) m.dirty = false; });
+    return authed('PATCH', '/rest/v1/school_data?school_id=eq.' + enc(c.id), { data: copy, name: s.profile.name, rev: remoteRev + 1, updated_at: new Date().toISOString() }, 'return=minimal').then(function (x) { if (!x.ok) throw { text: errText(x) }; m.rev = remoteRev + 1; if (m.v === v0) m.dirty = false; });
+  }).then(function () { flushSave(); toast('This device\'s copy is now online'); }).catch(function (e) { toast((e && e.text) || 'Could not save online.'); SY.conflicts.push(c); })
+    .then(function () { SY.busy = false; updateChip(); if (SY.conflicts.length) showConflict(); });
+};
+
+// ---------- sign in / settings tab ----------
+TABS.sync = function () {
+  var c = SY.cfg || {};
+  if (hasSync()) {
+    return '<div class="card"><h3 style="margin-bottom:6px">Online sync is on</h3><p style="margin:0 0 6px">Signed in as <b>' + esc(SY.ses.email) + '</b>. Status: <b>' + esc(document.getElementById('syncChip').textContent) + '</b>' + (SY.msg ? '<br><span style="color:var(--bad)">' + esc(SY.msg) + '</span>' : '') + '</p>' +
+      '<div class="tw" style="margin:10px 0"><table><thead><tr><th>School</th><th>Online</th></tr></thead><tbody>' + schoolList().map(function (s) { var m = meta(s); return '<tr><td>' + esc(s.profile.name) + '</td><td>' + (SY.conflicts.some(function (x) { return x.id === s.id; }) ? '<span class="tag bad">Two versions</span>' : m.dirty ? '<span class="tag">Waiting</span>' : '<span class="tag ok">Synced</span>') + '</td></tr>'; }).join('') + '</tbody></table></div>' +
+      '<div class="row"><button class="btn p" data-a="syncNow">Sync now</button>' + (SY.conflicts.length ? '<button class="btn d" data-a="showConf">Fix two versions</button>' : '') + '<button class="btn" data-a="syncOut">Sign out</button></div></div>' +
+      '<div class="note">Changes are sent a few seconds after you save. Without internet the app keeps working and sends later. Other phones or computers signed in to this account get the data when they open the app.</div>';
+  }
+  return '<div class="card"><h3 style="margin-bottom:6px">Sign in to share data between devices</h3><p class="mut" style="margin-top:0">First do the one-time setup in <b>ONLINE_SETUP.md</b> (about 10 minutes). Then paste your two Supabase values here.</p>' +
+    '<form data-f="syncLogin"><label class="f"><span>Supabase project URL</span><input name="url" value="' + esc(c.url || '') + '" placeholder="https://xxxx.supabase.co" required></label>' +
+    '<label class="f"><span>Supabase publishable key (or legacy anon key)</span><input name="key" value="' + esc(c.key || '') + '" required></label>' +
+    '<div class="g2"><label class="f"><span>Email</span><input type="email" name="email" required autocomplete="username"></label><label class="f"><span>Password (min 6 letters)</span><input type="password" name="pw" minlength="6" required autocomplete="current-password"></label></div>' +
+    '<div class="row"><button class="btn p" type="submit" name="act" value="login">Sign in</button><button class="btn" type="submit" name="act" value="signup">Create account</button></div>' +
+    (SY.msg ? '<p style="color:var(--bad)">' + esc(SY.msg) + '</p>' : '') + '</form></div>' +
+    '<div class="note">Use only the <b>publishable</b> key (starts with sb_publishable_) or the old <b>anon</b> key. Never paste a <b>secret</b> key (sb_secret_…) or a <b>service_role</b> key anywhere.</div>';
+};
+APP.forms.syncLogin = function (f, e) {
+  var d = formData(f), act = (e && e.submitter && e.submitter.value) || 'login';
+  var url = d.url.replace(/\/+$/, ''); if (!/^(https:\/\/.+|http:\/\/(localhost|127\.0\.0\.1)(:\d+)?)$/.test(url)) return toast('The project URL must start with https://');
+  SY.cfg = { url: url, key: d.key }; kvPut('sync_cfg', SY.cfg); SY.msg = '';
+  var body = { email: d.email, password: d.pw };
+  http(act === 'signup' ? '/auth/v1/signup' : '/auth/v1/token?grant_type=password', { method: 'POST', body: body }).then(function (r) {
+    if (!r.ok) { SY.msg = errText(r); return rerender(); }
+    if (!r.json || !r.json.access_token) { SY.msg = ''; rerender(); return toast('Account created. Check your email to confirm it, then press Sign in.'); }
+    setSession(r.json); return takeOwnership(r.json.user.id).then(function (ok) { if (!ok) { dropSession(); return rerender(); } toast('Signed in'); syncNow(true); });
+  }).catch(function () { SY.msg = 'Could not reach the server. Check the URL and your internet.'; rerender(); });
+};
+function takeOwnership(uid) {
+  return new Promise(function (res) {
+    var has = Object.keys(DB.schools).length > 0;
+    if (has && DB.owner && DB.owner !== uid) {
+      if (!ask('This device holds schools from a DIFFERENT account.\n\nOK = remove them from this device and load your own.\nCancel = stay signed out (nothing is changed).\n\nTip: Cancel, then download a backup in Settings first.')) return res(false);
+      DB = { v: 1, active: null, schools: {}, owner: uid }; SY.del = []; kvPut('sync_del', SY.del); flushSave(); location.hash = '#/home'; return res(true);
+    }
+    if (has && !DB.owner) schoolList().forEach(function (s) { var m = meta(s); m.rev = 0; m.dirty = true; });
+    DB.owner = uid; flushSave(); res(true);
+  });
+}
+APP.act.syncNow = function () { syncNow(true); };
+APP.act.showConf = function () { showConflict(); };
+APP.act.syncOut = function () { if (!ask('Sign out? Your data stays on this device, but will not sync until you sign in again.')) return; dropSession(); SY.conflicts = []; SY.msg = ''; updateChip(); rerender(); };
+
+
+// ===== CHUNK 9: STAFF ACCESS (lock screen with PIN, roles that decide which pages a person sees) =====
+// HONEST LIMIT: this keeps casual users out of pages they should not use (a teacher cannot open Fees or Salary).
+// It is NOT bank-level security: the data is stored on the device and anyone with technical skill and the device
+// could read it. Real server-side protection needs separate online tables per role (a later step).
+var ROLE_MODS = [['students', 'Students'], ['fees', 'Fees'], ['attendance', 'Attendance'], ['staff', 'Staff & Salary'], ['exams', 'Exams'], ['diary', 'Diary'], ['leave', 'Leave']];
+var ROLE = {}, lockFails = 0, lockUntil = 0, lastAct = Date.now(), lockStage = { role: '', recover: false };
+
+function sha256(ascii) { // small pure-JS SHA-256 (works on file:// and http alike)
+  function rr(v, a) { return (v >>> a) | (v << (32 - a)); }
+  var mp = Math.pow, mw = mp(2, 32), i, j, res = '', words = [], len = ascii.length * 8, hash = sha256.h = sha256.h || [], k = sha256.k = sha256.k || [], pc = k.length, ic = {};
+  for (var c = 2; pc < 64; c++) { if (!ic[c]) { for (i = 0; i < 313; i += c) ic[i] = c; hash[pc] = (mp(c, .5) * mw) | 0; k[pc++] = (mp(c, 1 / 3) * mw) | 0; } }
+  ascii += '\x80'; while (ascii.length % 64 - 56) ascii += '\x00';
+  for (i = 0; i < ascii.length; i++) { j = ascii.charCodeAt(i); if (j >> 8) return ''; words[i >> 2] |= j << ((3 - i) % 4) * 8; }
+  words[words.length] = ((len / mw) | 0); words[words.length] = len;
+  for (j = 0; j < words.length;) {
+    var w = words.slice(j, j += 16), old = hash; hash = hash.slice(0, 8);
+    for (i = 0; i < 64; i++) {
+      var w15 = w[i - 15], w2 = w[i - 2], a = hash[0], e = hash[4];
+      var t1 = hash[7] + (rr(e, 6) ^ rr(e, 11) ^ rr(e, 25)) + ((e & hash[5]) ^ ((~e) & hash[6])) + k[i] + (w[i] = (i < 16) ? w[i] : (w[i - 16] + (rr(w15, 7) ^ rr(w15, 18) ^ (w15 >>> 3)) + w[i - 7] + (rr(w2, 17) ^ rr(w2, 19) ^ (w2 >>> 10))) | 0);
+      var t2 = (rr(a, 2) ^ rr(a, 13) ^ rr(a, 22)) + ((a & hash[1]) ^ (a & hash[2]) ^ (hash[1] & hash[2]));
+      hash = [(t1 + t2) | 0].concat(hash); hash[4] = (hash[4] + t1) | 0;
+    }
+    for (i = 0; i < 8; i++) hash[i] = (hash[i] + old[i]) | 0;
+  }
+  for (i = 0; i < 8; i++) for (j = 3; j + 1; j--) { var b = (hash[i] >> (j * 8)) & 255; res += ((b < 16) ? 0 : '') + b.toString(16); }
+  return res;
+}
+function pinHash(pin, salt) { var h = salt + ':' + pin; for (var i = 0; i < 2000; i++) h = sha256(h + salt); return h; }
+function rnd(n, chars) { var a = new Uint8Array(n), o = ''; (window.crypto || {}).getRandomValues ? crypto.getRandomValues(a) : a.forEach(function (_, i) { a[i] = Math.floor(Math.random() * 256); }); for (var i = 0; i < n; i++) o += chars[a[i] % chars.length]; return o; }
+
+function AC() { var s = S(), a = s && s.settings.access; return a && a.on ? a : null; }
+function curRole() {
+  var a = AC(); if (!a) return null; var id = ROLE[S().id];
+  if (!id) { try { id = sessionStorage.getItem('sams_role_' + S().id); } catch (e) { } if (id) ROLE[S().id] = id; }
+  return a.roles.filter(function (r) { return r.id === id; })[0] || null;
+}
+function setRole(id) { ROLE[S().id] = id; try { if (id) sessionStorage.setItem('sams_role_' + S().id, id); else sessionStorage.removeItem('sams_role_' + S().id); } catch (e) { } lastAct = Date.now(); }
+
+APP.canSee = function (id) {
+  var a = AC(); if (!a) return true; var r = curRole(); if (!r) return false;
+  if (id === 'home') return true; if (id === 'settings') return !!r.settings; return r.id === 'principal' || r.mods.indexOf(id) >= 0;
+};
+APP.gate = function (id) {
+  var a = AC(); if (!a) return null; if (!curRole()) { showLock(); return 'lock'; }
+  if (APP.canSee(id)) return null; return 'home';
+};
+APP.afterRoute = function () {
+  var a = AC(), b = $('lockBtn'); if (!b) return; if (!a) return b.classList.add('hide');
+  var r = curRole(); b.classList.remove('hide'); b.textContent = 'Lock' + (r ? ' (' + r.name + ')' : '');
+};
+APP.act.lockNow = function () { setRole(''); route(); };
+['click', 'keydown', 'touchstart'].forEach(function (ev) { document.addEventListener(ev, function () { lastAct = Date.now(); }, true); });
+setInterval(function () { var a = AC(); if (a && a.idle && curRole() && Date.now() - lastAct > a.idle * 60000) { setRole(''); closeModal(); route(); } }, 15000);
+
+// ---------- lock screen ----------
+function showLock() {
+  $('app').classList.add('hide'); var w = $('welcome'); w.classList.remove('hide'); var a = AC(), pr = S().profile;
+  var head = '<div class="card" style="text-align:center">' + (pr.logo ? '<img src="' + pr.logo + '" style="width:64px;height:64px;border-radius:14px;object-fit:cover">' : '<div class="logo" style="width:64px;height:64px;font-size:26px;margin:0 auto">' + esc(pr.name.charAt(0).toUpperCase()) + '</div>') + '<h1 style="margin:8px 0 2px">' + esc(pr.name) + '</h1>';
+  if (lockStage.recover) {
+    w.innerHTML = head + '<p class="mut">Enter the recovery code you wrote down when access was turned on, then choose a new Principal PIN.</p><form data-f="recover" style="text-align:left"><label class="f"><span>Recovery code</span><input name="code" required autocomplete="off" style="text-transform:uppercase"></label>' +
+      '<label class="f"><span>New Principal PIN (4 to 8 digits)</span><input name="pin" type="password" inputmode="numeric" pattern="[0-9]{4,8}" required></label><div class="row"><button class="btn p" type="submit">Reset PIN</button><button class="btn" type="button" data-a="lockBack">Back</button></div></form></div>';
+    return;
+  }
+  var roles = a.roles.filter(function (r) { return r.pinHash; });
+  if (!lockStage.role || !roles.some(function (r) { return r.id === lockStage.role; })) lockStage.role = '';
+  if (!lockStage.role) {
+    w.innerHTML = head + '<p class="mut">Who is using the app?</p>' + roles.map(function (r) { return '<button class="btn p" style="width:100%;margin:5px 0;padding:14px" data-a="lockPick" data-id="' + r.id + '">' + esc(r.name) + '</button>'; }).join('') + '</div>';
+    return;
+  }
+  var r = a.roles.filter(function (x) { return x.id === lockStage.role; })[0];
+  w.innerHTML = head + '<p class="mut">' + esc(r.name) + ' – enter your PIN</p><form data-f="unlock"><input name="pin" type="password" inputmode="numeric" autocomplete="off" maxlength="8" style="text-align:center;font-size:24px;letter-spacing:6px" autofocus required><p id="lockMsg" style="color:var(--bad);min-height:20px;margin:6px 0"></p>' +
+    '<div class="row" style="justify-content:center"><button class="btn p" type="submit">Unlock</button><button class="btn" type="button" data-a="lockBack">Back</button></div></form><p style="margin-top:14px"><a href="#" data-a="lockForgot">Forgot PIN?</a></p></div>';
+  var i = w.querySelector('input'); if (i) i.focus();
+}
+APP.act.lockPick = function (el) { lockStage.role = el.getAttribute('data-id'); showLock(); };
+APP.act.lockBack = function () { lockStage = { role: '', recover: false }; showLock(); };
+APP.act.lockForgot = function (el, e) { if (e) e.preventDefault(); lockStage.recover = true; showLock(); };
+APP.forms.unlock = function (f) {
+  var a = AC(), r = a.roles.filter(function (x) { return x.id === lockStage.role; })[0], msg = $('lockMsg'), pin = formData(f).pin;
+  if (Date.now() < lockUntil) { msg.textContent = 'Too many tries. Wait ' + Math.ceil((lockUntil - Date.now()) / 1000) + ' seconds.'; return; }
+  if (pinHash(pin, r.salt) === r.pinHash) { lockFails = 0; lockStage = { role: '', recover: false }; setRole(r.id); location.hash = '#/home'; route(); return; }
+  lockFails++; f.reset(); if (lockFails >= 5) { lockUntil = Date.now() + 30000; lockFails = 0; msg.textContent = 'Too many wrong PINs. Wait 30 seconds.'; } else msg.textContent = 'Wrong PIN. ' + (5 - lockFails) + ' tries left.';
+};
+APP.forms.recover = function (f) {
+  var d = formData(f), a = AC(); if (!/^[0-9]{4,8}$/.test(d.pin)) return toast('PIN must be 4 to 8 digits.');
+  if (pinHash(d.code.trim().toUpperCase(), a.recSalt) !== a.recHash) return toast('That recovery code is not correct.');
+  var p = a.roles.filter(function (r) { return r.id === 'principal'; })[0]; p.salt = rnd(10, 'abcdefghijklmnopqrstuvwxyz0123456789'); p.pinHash = pinHash(d.pin, p.salt);
+  lockUntil = 0; lockFails = 0; save(); lockStage = { role: '', recover: false }; setRole('principal'); location.hash = '#/home'; route(); toast('New Principal PIN saved');
+};
+
+// ---------- settings tab ----------
+TABS.access = function () {
+  var a = AC();
+  if (!a) return '<div class="card"><h3 style="margin-bottom:6px">Staff access is OFF</h3><p class="mut" style="margin-top:0">Right now anyone who opens the app can see everything, including fees and salaries. Turn this on to ask for a PIN when the app opens, and let each role see only its own pages (a teacher sees Attendance, Exams, Diary and Leave; the accountant sees Fees).</p>' +
+    '<form data-f="accOn"><div class="g2"><label class="f"><span>Principal PIN (4 to 8 digits)</span><input name="pin" type="password" inputmode="numeric" pattern="[0-9]{4,8}" required></label><label class="f"><span>Repeat PIN</span><input name="pin2" type="password" inputmode="numeric" pattern="[0-9]{4,8}" required></label></div><button class="btn p" type="submit">Turn on staff access</button></form></div>' +
+    '<div class="note warn">This keeps casual users out of pages. It is not bank-level security. Someone with technical skill and the device could still reach the data. Keep the device itself safe.</div>';
+  var r0 = curRole(); if (!r0 || !r0.settings) return '<div class="card mut">Only roles allowed to open Settings can change access.</div>';
+  return '<div class="card"><div class="row"><h3>Staff access is ON</h3><div class="sp"></div><button class="btn s d" data-a="accOff">Turn off</button></div>' +
+    '<form data-f="accIdle" class="row" style="margin-top:8px"><label class="f" style="margin:0"><span>Lock automatically after (minutes of no use, 0 = never)</span><input type="number" min="0" max="240" name="idle" value="' + (a.idle || 0) + '" style="max-width:140px"></label><button class="btn" type="submit">Save</button></form></div>' +
+    a.roles.map(function (r) {
+      var fixed = r.id === 'principal';
+      return '<div class="card"><form data-f="accRole"><input type="hidden" name="id" value="' + r.id + '"><div class="g2"><label class="f"><span>Role name</span><input name="name" value="' + esc(r.name) + '"' + (fixed ? ' readonly' : '') + ' required></label>' +
+        '<label class="f"><span>' + (r.pinHash ? 'Change PIN (leave empty to keep)' : 'Set PIN (this role cannot unlock until a PIN is set)') + '</span><input name="pin" type="password" inputmode="numeric" pattern="[0-9]{4,8}" placeholder="4 to 8 digits"></label></div>' +
+        (fixed ? '<p class="mut" style="margin:0 0 8px">The Principal can open everything, including Settings.</p>' :
+          '<div class="row" style="margin-bottom:8px">' + ROLE_MODS.map(function (m) { return '<label class="chk" style="margin:0"><input type="checkbox" name="m_' + m[0] + '"' + (r.mods.indexOf(m[0]) >= 0 ? ' checked' : '') + '>' + m[1] + '</label>'; }).join('') + '<label class="chk" style="margin:0"><input type="checkbox" name="settings"' + (r.settings ? ' checked' : '') + '><b>Settings</b></label></div>') +
+        '<div class="row"><button class="btn p" type="submit">Save</button>' + (fixed ? '' : '<button class="btn d s" type="button" data-a="accDel" data-id="' + r.id + '">Delete role</button>') + '</div></form></div>';
+    }).join('') + '<div class="card"><form data-f="accAdd" class="row"><label class="f" style="margin:0"><span>New role name</span><input name="name" required placeholder="e.g. Vice principal"></label><button class="btn" type="submit">+ Add role</button></form></div>';
+};
+function newRole(id, name, mods, settings, pin) { var salt = rnd(10, 'abcdefghijklmnopqrstuvwxyz0123456789'); return { id: id, name: name, mods: mods, settings: !!settings, salt: salt, pinHash: pin ? pinHash(pin, salt) : '' }; }
+APP.forms.accOn = function (f) {
+  var d = formData(f); if (d.pin !== d.pin2) return toast('The two PINs are not the same.'); if (!/^[0-9]{4,8}$/.test(d.pin)) return toast('PIN must be 4 to 8 digits.');
+  var all = ROLE_MODS.map(function (m) { return m[0]; }), code = rnd(10, 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'), recSalt = rnd(10, 'abcdefghijklmnopqrstuvwxyz0123456789');
+  S().settings.access = { on: true, idle: 10, recSalt: recSalt, recHash: pinHash(code, recSalt), roles: [
+    newRole('principal', 'Principal', all, true, d.pin), newRole('accountant', 'Accountant', ['students', 'fees', 'staff'], false, ''),
+    newRole('teacher', 'Teacher', ['attendance', 'exams', 'diary', 'leave'], false, ''), newRole('reception', 'Reception', ['students', 'fees', 'diary'], false, '')] };
+  save(); setRole('principal'); rerender();
+  modal('Write down your recovery code', '<div class="note warn"><p style="margin-top:0">If the Principal forgets the PIN, this code is the only way back in. Write it on paper and keep it safe. <b>It is shown only once.</b></p></div><p style="text-align:center;font-size:30px;letter-spacing:4px;font-weight:700;margin:16px 0">' + code + '</p><p class="mut">Next: give the other roles a PIN below (they cannot unlock until you do).</p><button class="btn p" data-a="close">I wrote it down</button>');
+};
+APP.forms.accRole = function (f) {
+  var d = formData(f), a = AC(), r = a.roles.filter(function (x) { return x.id === d.id; })[0];
+  if (d.pin && !/^[0-9]{4,8}$/.test(d.pin)) return toast('PIN must be 4 to 8 digits.');
+  if (d.id !== 'principal') { r.name = d.name || r.name; r.mods = ROLE_MODS.map(function (m) { return m[0]; }).filter(function (m) { return d['m_' + m]; }); r.settings = !!d.settings; }
+  if (d.pin) { r.salt = rnd(10, 'abcdefghijklmnopqrstuvwxyz0123456789'); r.pinHash = pinHash(d.pin, r.salt); }
+  save(); rerender(); toast('Saved');
+};
+APP.forms.accAdd = function (f) { var d = formData(f); AC().roles.push(newRole('r' + uid(), d.name, [], false, '')); save(); rerender(); toast('Role added. Choose its pages and set a PIN.'); };
+APP.act.accDel = function (el) { if (!ask('Delete this role?')) return; var a = AC(), id = el.getAttribute('data-id'); a.roles = a.roles.filter(function (r) { return r.id !== id; }); save(); rerender(); };
+APP.forms.accIdle = function (f) { AC().idle = Math.max(0, parseInt(formData(f).idle, 10) || 0); save(); toast('Saved'); };
+APP.act.accOff = function () { if (!ask('Turn off staff access? Anyone who opens the app will see everything.')) return; S().settings.access = null; setRole(''); save(); rerender(); };
+
+
+// ===== BOOT: always the last chunk =====
+document.addEventListener('DOMContentLoaded', function () {
+  $('menu').addEventListener('click', function () { $('side').classList.toggle('open'); });
+  if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) navigator.serviceWorker.register('sw.js').catch(function () { });
+  load(function () { if (!location.hash) location.hash = '#/home'; route(); if (APP.afterLoad) APP.afterLoad(); });
+});
+
+</script>
+</body>
+</html>
